@@ -33,8 +33,6 @@ use_cuda = True if torch.cuda.is_available() else False
 device = 'cuda:0' if use_cuda else 'cpu'
 
 classifier = Classifier(embedding_dim, 2, dropout=0.7)
-print(use_cuda)
-exit()
 if use_cuda:
     classifier.to(device)
     sentence_embeddings = sentence_embeddings.to(device)
