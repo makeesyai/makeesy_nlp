@@ -19,7 +19,8 @@ class Classifier(nn.Module):
 
 
 # Sentences we want sentence embeddings for
-sentences = ['This framework generates embeddings for each input sentence',
+sentences = ['This framework generates embeddings for '
+             'each input sentence',
              'Sentences are passed as a list of string.',
              'The quick brown fox jumps over the lazy dog.']
 labels = torch.tensor([0, 0, 1])
@@ -60,7 +61,8 @@ test_sentences = ['The sentence is used here has good embeddings.',
                   'डॉग्स के साथ खेलता लड़का और खुशी से उछलता।']
 test_labels = [0, 1, 0, 1]
 
-test_sentence_embeddings = embedder.encode(test_sentences, convert_to_tensor=True)
+test_sentence_embeddings = embedder.encode(test_sentences,
+                                           convert_to_tensor=True)
 
 if use_cuda:
     test_sentence_embeddings = test_sentence_embeddings.to(device)
