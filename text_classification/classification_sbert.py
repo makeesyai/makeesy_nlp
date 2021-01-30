@@ -24,7 +24,8 @@ sentences = ['This framework generates embeddings for each input sentence',
              'The quick brown fox jumps over the lazy dog.']
 labels = torch.tensor([0, 0, 1])
 
-embedder = SentenceTransformer('distilbert-base-nli-mean-tokens')
+# embedder = SentenceTransformer('distilbert-base-nli-mean-tokens')
+embedder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
 sentence_embeddings = embedder.encode(sentences, convert_to_tensor=True)
 
 num_sentence, embedding_dim = sentence_embeddings.size()
@@ -45,7 +46,7 @@ with torch.no_grad():
     predict = classifier(sentence_embeddings)
     print(torch.argmax(predict, dim=-1))
 
-for e in range(5000):
+for e in range(10):
     optimizer.zero_grad()
     logits = classifier(sentence_embeddings)
     loss = loss_fn(logits, labels)
@@ -54,8 +55,10 @@ for e in range(5000):
     optimizer.step()
 
 test_sentences = ['The sentence is used here has good embeddings.',
-                  'The boy playing with the Dogs and jumping with joy.']
-test_labels = [0, 1]
+                  'The boy playing with the Dogs and jumping with joy.',
+                  'यहाँ वाक्य का इस्तेमाल किया गया है जिसमें अच्छी एम्बेडिंग है।',
+                  'डॉग्स के साथ खेलता लड़का और खुशी से उछलता।']
+test_labels = [0, 1, 0, 1]
 
 test_sentence_embeddings = embedder.encode(test_sentences, convert_to_tensor=True)
 
