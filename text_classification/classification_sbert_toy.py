@@ -1,3 +1,15 @@
+"""
+1. 'distilbert-base-nli-mean-tokens'
+2. 'quora-distilbert-multilingual' (multilingual)
+Steps-
+1. Create model (show each step with running the intermediate code)
+2. Add Optimizer (Adam) and Loss function (CrossEntropy)
+3. Add Testing with training and print evaluation
+4. Add training Loop with logging loss
+5. Add final evaluation code
+"""
+
+
 import time
 
 from sentence_transformers import SentenceTransformer
@@ -32,7 +44,7 @@ sentences = [
 labels = torch.tensor([0, 0, 1, 1, 1])
 
 # embedder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-embedder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+embedder = SentenceTransformer('quora-distilbert-multilingual')
 start_time = time.time()
 sentence_embeddings = embedder.encode(sentences, convert_to_tensor=True)
 print(f'The encoding time:{time.time() - start_time}')
@@ -43,10 +55,11 @@ device = 'cuda:0' if use_cuda else 'cpu'
 num_sentence, embedding_dim = sentence_embeddings.size()
 num_labels = labels.unique().shape[0]
 classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
-if use_cuda:
-    classifier.to(device)
-    sentence_embeddings = sentence_embeddings.to(device)
-    labels = labels.to(device)
+
+# Move model and data to device
+classifier.to(device)
+sentence_embeddings = sentence_embeddings.to(device)
+labels = labels.to(device)
 
 optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
@@ -73,9 +86,7 @@ test_labels = [0, 1, 0, 1]
 
 test_sentence_embeddings = embedder.encode(test_sentences,
                                            convert_to_tensor=True)
-
-if use_cuda:
-    test_sentence_embeddings = test_sentence_embeddings.to(device)
+test_sentence_embeddings = test_sentence_embeddings.to(device)
 
 with torch.no_grad():
     predict = classifier(test_sentence_embeddings)
