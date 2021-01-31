@@ -1,5 +1,7 @@
 sentence-transformers
 protobuf
+deep_translator
+pandas
 
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.7.1+cu101

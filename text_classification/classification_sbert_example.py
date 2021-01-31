@@ -6,6 +6,7 @@ Install pandas (data loading)
 """
 import time
 
+from deep_translator import GoogleTranslator
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
@@ -98,7 +99,9 @@ loss_fn = nn.CrossEntropyLoss()
 test_sentences = X_test.tolist()
 test_labels = y_test.tolist()
 
-test_sentence_embeddings = embedder.encode(test_sentences,
+translator = GoogleTranslator(source='en', target='hi')
+translations = translator.translate_batch(test_sentences)
+test_sentence_embeddings = embedder.encode(translations,
                                            convert_to_tensor=True)
 test_sentence_embeddings = test_sentence_embeddings.to(device)
 
