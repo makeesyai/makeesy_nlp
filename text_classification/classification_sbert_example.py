@@ -1,13 +1,14 @@
 """
 Download Data
-https://www.kaggle.com/c/nlp-getting-started/data
+https://www.kaggle.com/c/nlp-getting-started/data (tweet)
+https://www.kaggle.com/team-ai/spam-text-message-classification (spam)
 Install pandas (data loading)
 """
-
 import time
 
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
 from torch import nn, optim
 import torch
 from torch.nn import functional as F
@@ -56,14 +57,22 @@ class Classifier(nn.Module):
 
 
 data = pd.read_csv("../data/nlp-getting-started/train.csv")
+# data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
+data.rename(columns={'Message': 'text', 'Category': 'target'}, inplace=True)
+
+# Convert String Labels to integer lables
+le = LabelEncoder()
+le.fit(data.target)
+data['labels'] = le.transform(data.target)
+
 X_train, X_test, y_train, y_test = \
-    train_test_split(data.text, data.target, stratify=data.target, test_size=0.25)
+    train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.10)
 
 sentences = X_train.tolist()
 labels = np.array(y_train.tolist())
 
 # embedder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-embedder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+embedder = SentenceTransformer('quora-distilbert-multilingual')
 start_time = time.time()
 sentence_embeddings = embedder.encode(sentences)
 print(f'The encoding time:{time.time() - start_time}')
@@ -72,19 +81,16 @@ use_cuda = True if torch.cuda.is_available() else False
 device = 'cuda:0' if use_cuda else 'cpu'
 
 num_sentence, embedding_dim = sentence_embeddings.shape
-training_batcher = Batcher(sentence_embeddings, labels, batch_size=32)
+training_batcher = Batcher(sentence_embeddings, labels, batch_size=16)
 
 num_labels = np.unique(labels).shape[0]
-classifier = Classifier(embedding_dim, num_labels, dropout=0.7)
+classifier = Classifier(embedding_dim, num_labels, dropout=0.1)
 
 classifier.to(device)
 
 optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
-# with torch.no_grad():
-#     predict = classifier(sentence_embeddings)
-#     print(torch.argmax(predict, dim=-1))
 test_sentences = X_test.tolist()
 test_labels = y_test.tolist()
 
@@ -92,11 +98,12 @@ test_sentence_embeddings = embedder.encode(test_sentences,
                                            convert_to_tensor=True)
 test_sentence_embeddings = test_sentence_embeddings.to(device)
 
+# Run prediction before training
 with torch.no_grad():
     predict = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(predict, dim=-1)
-    accuracy = accuracy_score(predicted_labels.data.tolist(), test_labels) * 100
-    print(accuracy)
+    accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
+    print(f'Accuracy before training: {accuracy}')
 
 total_loss = 0
 for e in range(30):
@@ -110,12 +117,13 @@ for e in range(30):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-        if index % 100 == 0:
-            print(f'Epoch{e}, Average loss:{total_loss/100}')
+        if index and index % 100 == 0:
+            print(f'Epoch: {e}, Average loss:{total_loss/100}')
             total_loss = 0
 
 with torch.no_grad():
     predict = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(predict, dim=-1)
-    accuracy = accuracy_score(predicted_labels.data.tolist(), test_labels) * 100
-    print(accuracy)
+    accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
+    print(f'Accuracy after training:{accuracy}')
+    print(confusion_matrix(predicted_labels.data.tolist(), test_labels))
