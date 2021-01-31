@@ -1,3 +1,5 @@
+import time
+
 from sentence_transformers import SentenceTransformer
 from torch import nn, optim
 import torch
@@ -19,22 +21,28 @@ class Classifier(nn.Module):
 
 
 # Sentences we want sentence embeddings for
-sentences = ['This framework generates embeddings for '
-             'each input sentence',
-             'Sentences are passed as a list of string.',
-             'The quick brown fox jumps over the lazy dog.']
-labels = torch.tensor([0, 0, 1])
+sentences = [
+    'This framework generates embeddings for each input sentence',
+    'Sentences are passed as a list of string.',
+    'The quick brown fox jumps over the lazy dog.',
+    'The lazy dog is also jumping.',
+    'The fox and the dog are playing.',
+]
+
+labels = torch.tensor([0, 0, 1, 1, 1])
 
 # embedder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 embedder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+start_time = time.time()
 sentence_embeddings = embedder.encode(sentences, convert_to_tensor=True)
-
-num_sentence, embedding_dim = sentence_embeddings.size()
+print(f'The encoding time:{time.time() - start_time}')
 
 use_cuda = True if torch.cuda.is_available() else False
 device = 'cuda:0' if use_cuda else 'cpu'
 
-classifier = Classifier(embedding_dim, 2, dropout=0.7)
+num_sentence, embedding_dim = sentence_embeddings.size()
+num_labels = labels.unique().shape[0]
+classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
 if use_cuda:
     classifier.to(device)
     sentence_embeddings = sentence_embeddings.to(device)
@@ -43,22 +51,24 @@ if use_cuda:
 optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
-with torch.no_grad():
-    predict = classifier(sentence_embeddings)
-    print(torch.argmax(predict, dim=-1))
+# with torch.no_grad():
+#     predict = classifier(sentence_embeddings)
+#     print(torch.argmax(predict, dim=-1))
 
 for e in range(10):
     optimizer.zero_grad()
-    logits = classifier(sentence_embeddings)
-    loss = loss_fn(logits, labels)
-    print(loss)
+    predict = classifier(sentence_embeddings)
+    loss = loss_fn(predict, labels)
+    print(loss.item())
     loss.backward()
     optimizer.step()
 
-test_sentences = ['The sentence is used here has good embeddings.',
-                  'The boy playing with the Dogs and jumping with joy.',
-                  'यहाँ वाक्य का इस्तेमाल किया गया है जिसमें अच्छी एम्बेडिंग है।',
-                  'डॉग्स के साथ खेलता लड़का और खुशी से उछलता।']
+test_sentences = [
+    'The sentence is used here has good embeddings.',
+    'The boy is playing with the dog and jumping in joy.',
+    'यहाँ वाक्य का इस्तेमाल किया गया है जिसमें अच्छी एम्बेडिंग है।',
+    'डॉग्स के साथ खेलता लड़का और खुशी से उछलता।'
+]
 test_labels = [0, 1, 0, 1]
 
 test_sentence_embeddings = embedder.encode(test_sentences,
