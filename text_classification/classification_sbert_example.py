@@ -17,17 +17,17 @@ import pandas as pd
 import numpy as np
 from text_classification.model_utils import set_seed
 # Set seed for results reproduction
-set_seed()
+set_seed(123)
 
 
 class Batcher(object):
-    def __init__(self, x, y, batch_size=32, seed=123):
+    def __init__(self, x, y, batch_size=32):
         self.x = x
         self.y = y
         self.batch_size = batch_size
         self.num_samples = x.shape[0]
         self.indices = np.arange(self.num_samples)
-        self.rnd = np.random.RandomState(seed=seed)
+        self.rnd = np.random.RandomState()
         self.rnd.shuffle(self.indices)
         self.pointer = 0
 
