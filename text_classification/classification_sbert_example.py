@@ -15,6 +15,9 @@ from torch.nn import functional as F
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
+from text_classification.model_utils import set_seed
+# Set seed for results reproduction
+set_seed()
 
 
 class Batcher(object):
@@ -56,17 +59,17 @@ class Classifier(nn.Module):
         return F.softmax(tensor, dim=-1)
 
 
-data = pd.read_csv("../data/nlp-getting-started/train.csv")
-# data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
+# data = pd.read_csv("../data/nlp-getting-started/train.csv")
+data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
 data.rename(columns={'Message': 'text', 'Category': 'target'}, inplace=True)
 
-# Convert String Labels to integer lables
+# Convert String Labels to integer labels
 le = LabelEncoder()
 le.fit(data.target)
 data['labels'] = le.transform(data.target)
 
 X_train, X_test, y_train, y_test = \
-    train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.10)
+    train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15)
 
 sentences = X_train.tolist()
 labels = np.array(y_train.tolist())
@@ -81,7 +84,8 @@ use_cuda = True if torch.cuda.is_available() else False
 device = 'cuda:0' if use_cuda else 'cpu'
 
 num_sentence, embedding_dim = sentence_embeddings.shape
-training_batcher = Batcher(sentence_embeddings, labels, batch_size=16)
+batch_size = 16
+training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch_size)
 
 num_labels = np.unique(labels).shape[0]
 classifier = Classifier(embedding_dim, num_labels, dropout=0.1)
@@ -118,7 +122,7 @@ for e in range(30):
         optimizer.step()
         total_loss += loss.item()
         if index and index % 100 == 0:
-            print(f'Epoch: {e}, Average loss:{total_loss/100}')
+            print(f'Epoch: {e}, Average loss:{total_loss / (100 * batch_size)}')
             total_loss = 0
 
 with torch.no_grad():
