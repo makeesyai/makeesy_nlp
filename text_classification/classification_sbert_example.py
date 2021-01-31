@@ -17,7 +17,6 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 from text_classification.model_utils import set_seed
-
 # Set seed for results reproduction
 set_seed(123)
 
@@ -37,14 +36,14 @@ class Batcher(object):
         return self
 
     def __next__(self):
-        try:
-            batch = self.indices[self.pointer:min(self.pointer + self.batch_size, self.num_samples)]
-            self.pointer += self.batch_size
-            return torch.tensor(self.x[batch]), torch.tensor(self.y[batch], dtype=torch.long)
-        except e:
+        if self.pointer + self.batch_size > self.num_samples:
             self.rnd.shuffle(self.indices)
             self.pointer = 0
             raise StopIteration
+        else:
+            batch = self.indices[self.pointer:self.pointer + self.batch_size]
+            self.pointer += self.batch_size
+            return torch.tensor(self.x[batch]), torch.tensor(self.y[batch], dtype=torch.long)
 
 
 class Classifier(nn.Module):
@@ -86,8 +85,8 @@ use_cuda = True if torch.cuda.is_available() else False
 device = 'cuda:0' if use_cuda else 'cpu'
 
 num_sentence, embedding_dim = sentence_embeddings.shape
-batch = 16
-training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch)
+batch_size = 16
+training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch_size)
 
 num_labels = np.unique(labels).shape[0]
 classifier = Classifier(embedding_dim, num_labels, dropout=0.1)
