@@ -96,8 +96,8 @@ classifier.to(device)
 optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
-test_sentences = X_test.tolist()
-test_labels = y_test.tolist()
+test_sentences = X_test.tolist()[:50]
+test_labels = y_test.tolist()[:50]
 
 translator = GoogleTranslator(source='en', target='hi')
 translations = translator.translate_batch(test_sentences)
