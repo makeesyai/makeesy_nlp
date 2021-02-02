@@ -62,13 +62,13 @@ class Classifier(nn.Module):
         self.ff = nn.Linear(embedding_size, num_labels)
 
     def forward(self, x):
-        x = self.dropout(x)
-        tensor = self.ff(x)
-        return F.softmax(tensor, dim=-1)
+        tensor = self.dropout(x)
+        logits = self.ff(tensor)
+        return logits, F.softmax(logits, dim=-1)
 
 
-# data = pd.read_csv("../data/nlp-getting-started/train.csv")
-data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
+data = pd.read_csv("../data/nlp-getting-started/train.csv")
+# data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
 data.rename(columns={'Message': 'text', 'Category': 'target'}, inplace=True)
 
 # Convert String Labels to integer labels
@@ -103,21 +103,26 @@ classifier.to(device)
 optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
-test_sentences = X_test.tolist()[:50]
-test_labels = y_test.tolist()[:50]
+test_sentences = X_test.tolist()
+test_labels = y_test.tolist()
 
-translator = GoogleTranslator(source='en', target='hi')
-translations = translator.translate_batch(test_sentences)
-test_sentence_embeddings = embedder.encode(translations,
+# Uncomment the following code test the zero-shot Multilingual transfer
+# test_sentences = X_test.tolist()[50]
+# test_labels = y_test.tolist()[50]
+# translator = GoogleTranslator(source='en', target='hi')
+# test_sentences = translator.translate_batch(test_sentences)
+
+test_sentence_embeddings = embedder.encode(test_sentences,
                                            convert_to_tensor=True)
 test_sentence_embeddings = test_sentence_embeddings.to(device)
 
 # Run prediction before training
 with torch.no_grad():
-    predict = classifier(test_sentence_embeddings)
-    predicted_labels = torch.argmax(predict, dim=-1)
+    logits, prob = classifier(test_sentence_embeddings)
+    predicted_labels = torch.argmax(prob, dim=-1)
     accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
-    print(f'Accuracy before training: {accuracy}')
+    print(f'Accuracy before training:')
+    print(accuracy)
 
 total_loss = 0
 for e in range(30):
@@ -126,8 +131,8 @@ for e in range(30):
         x, y = batch
         x = x.to(device)
         y = y.to(device)
-        predict = classifier(x)
-        loss = loss_fn(predict, y)
+        logits, prob = classifier(x)
+        loss = loss_fn(logits, y)
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -136,8 +141,9 @@ for e in range(30):
             total_loss = 0
 
 with torch.no_grad():
-    predict = classifier(test_sentence_embeddings)
-    predicted_labels = torch.argmax(predict, dim=-1)
+    logits, prob = classifier(test_sentence_embeddings)
+    predicted_labels = torch.argmax(prob, dim=-1)
     accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
-    print(f'Accuracy after training:{accuracy}')
+    print(f'Accuracy after training:')
+    print(accuracy)
     print(confusion_matrix(predicted_labels.data.tolist(), test_labels))

@@ -8,8 +8,6 @@ Steps-
 4. Add training Loop with logging loss
 5. Add final evaluation code
 """
-
-
 import time
 
 from sentence_transformers import SentenceTransformer
@@ -27,9 +25,9 @@ class Classifier(nn.Module):
         self.ff = nn.Linear(embedding_size, num_labels)
 
     def forward(self, x):
-        x = self.dropout(x)
-        tensor = self.ff(x)
-        return F.softmax(tensor, dim=-1)
+        tensor = self.dropout(x)
+        logits = self.ff(tensor)
+        return logits, F.softmax(logits, dim=-1)
 
 
 # Sentences we want sentence embeddings for
@@ -70,8 +68,8 @@ loss_fn = nn.CrossEntropyLoss()
 
 for e in range(10):
     optimizer.zero_grad()
-    predict = classifier(sentence_embeddings)
-    loss = loss_fn(predict, labels)
+    logits, prob = classifier(sentence_embeddings)
+    loss = loss_fn(logits, labels)
     print(loss.item())
     loss.backward()
     optimizer.step()
@@ -89,5 +87,5 @@ test_sentence_embeddings = embedder.encode(test_sentences,
 test_sentence_embeddings = test_sentence_embeddings.to(device)
 
 with torch.no_grad():
-    predict = classifier(test_sentence_embeddings)
-    print(torch.argmax(predict, dim=-1))
+    logits, prob = classifier(test_sentence_embeddings)
+    print(torch.argmax(prob, dim=-1))
