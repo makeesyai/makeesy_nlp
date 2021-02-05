@@ -2,9 +2,11 @@
 Models:
 1. 'distilbert-base-nli-mean-tokens'
 2. 'quora-distilbert-multilingual' (multilingual)
+
 Steps:
 1. Create model (show each step with running the intermediate code)
 2. Add Testing with training data using model init
+
 3. Add Optimizer (Adam) and Loss function (CrossEntropy)
 4. Add training Loop with logging loss
 5. Add final evaluation code

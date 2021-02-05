@@ -5,11 +5,13 @@ https://www.kaggle.com/c/nlp-getting-started/data (tweet)
 Install pandas (data loading)
 
 1. Data loading
-2. Indexing (string labels to ids)
-2. Split train, test (85/15)
-3. Data Iterator
-4. Train the model on Spam detection task
-5. Add Tweet data (train and evaluate)
+2. Indexing (string-labels to ids)
+3. Split train, test (85/15)
+
+4. Data Iterator
+
+5. Train the model on Spam detection task
+6. Add Tweet data (train and evaluate)
 """
 import time
 
