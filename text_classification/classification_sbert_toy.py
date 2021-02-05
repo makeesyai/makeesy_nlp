@@ -40,16 +40,18 @@ sentences = [
 ]
 labels = torch.tensor([0, 0, 1, 1, 1])
 
-# encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-encoder = SentenceTransformer('quora-distilbert-multilingual')
+encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 start_time = time.time()
-
 sentence_embeddings = encoder.encode(sentences, convert_to_tensor=True)
 print(f'The encoding time:{time.time() - start_time}')
 
 num_sentence, embedding_dim = sentence_embeddings.size()
 num_labels = labels.unique().shape[0]
 classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
+
+with torch.no_grad():
+    model_outputs, prob = classifier(sentence_embeddings)
+    print(torch.argmax(prob, dim=-1))
 
 use_cuda = True if torch.cuda.is_available() else False
 device = 'cuda:0' if use_cuda else 'cpu'
@@ -62,10 +64,6 @@ labels = labels.to(device)
 optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
-# with torch.no_grad():
-#     predict = classifier(sentence_embeddings)
-#     print(torch.argmax(predict, dim=-1))
-
 for e in range(10):
     optimizer.zero_grad()
     model_outputs, prob = classifier(sentence_embeddings)
@@ -77,8 +75,8 @@ for e in range(10):
 test_sentences = [
     'The sentence is used here has good embeddings.',
     'The boy is playing with the dog and jumping in joy.',
-    'यहाँ वाक्य का इस्तेमाल किया गया है जिसमें अच्छी एम्बेडिंग है।',
-    'डॉग्स के साथ खेलता लड़का और खुशी से उछलता।'
+    # 'यहाँ वाक्य का इस्तेमाल किया गया है जिसमें अच्छी एम्बेडिंग है।',
+    # 'डॉग्स के साथ खेलता लड़का और खुशी से उछलता।'
 ]
 test_labels = [0, 1, 0, 1]
 
