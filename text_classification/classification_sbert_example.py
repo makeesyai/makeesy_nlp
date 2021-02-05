@@ -82,10 +82,10 @@ X_train, X_test, y_train, y_test = \
 sentences = X_train.tolist()
 labels = np.array(y_train.tolist())
 
-# embedder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-embedder = SentenceTransformer('quora-distilbert-multilingual')
+# encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
+encoder = SentenceTransformer('quora-distilbert-multilingual')
 start_time = time.time()
-sentence_embeddings = embedder.encode(sentences)
+sentence_embeddings = encoder.encode(sentences)
 print(f'The encoding time:{time.time() - start_time}')
 
 use_cuda = True if torch.cuda.is_available() else False
@@ -112,13 +112,13 @@ test_labels = y_test.tolist()
 # translator = GoogleTranslator(source='en', target='hi')
 # test_sentences = translator.translate_batch(test_sentences)
 
-test_sentence_embeddings = embedder.encode(test_sentences,
-                                           convert_to_tensor=True)
+test_sentence_embeddings = encoder.encode(test_sentences,
+                                          convert_to_tensor=True)
 test_sentence_embeddings = test_sentence_embeddings.to(device)
 
 # Run prediction before training
 with torch.no_grad():
-    logits, prob = classifier(test_sentence_embeddings)
+    model_outputs, prob = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(prob, dim=-1)
     accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
     print(f'Accuracy before training:')
@@ -131,8 +131,8 @@ for e in range(30):
         x, y = batch
         x = x.to(device)
         y = y.to(device)
-        logits, prob = classifier(x)
-        loss = loss_fn(logits, y)
+        model_outputs, prob = classifier(x)
+        loss = loss_fn(model_outputs, y)
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -141,7 +141,7 @@ for e in range(30):
             total_loss = 0
 
 with torch.no_grad():
-    logits, prob = classifier(test_sentence_embeddings)
+    model_outputs, prob = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(prob, dim=-1)
     accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
     print(f'Accuracy after training:')
