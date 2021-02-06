@@ -4,7 +4,7 @@ Models:
 2. 'quora-distilbert-multilingual' (multilingual)
 
 Steps:
-1. Create model (show each step with running the intermediate code)
+1. Create pytorch model for text classification (explain each step with running the intermediate code)
 2. Add Testing with training data using random model
 
 3. Add Optimizer (Adam) and Loss function (CrossEntropy)
@@ -30,4 +30,10 @@ test_sentences = [
 ]
 
 encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-sentence_embeddings = encoder.encode(sentences, convert_to_tensor=True)
+embedding = encoder.encode(sentences)
+print(embedding.shape)
+
+from sentence_transformers import util
+
+scores = util.pytorch_cos_sim(embedding, embedding)
+print(scores)
