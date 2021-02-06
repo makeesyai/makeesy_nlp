@@ -12,6 +12,7 @@ Steps:
 5. Add final evaluation code
 """
 import time
+
 import torch
 from sentence_transformers import SentenceTransformer
 from torch import nn, optim, tensor
@@ -55,18 +56,32 @@ test_sentences = [
 test_labels = tensor([0, 1, 0, 1])
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-encoder = SentenceTransformer('quora-distilbert-multilingual')
-print("Encoding the segments...")
+encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
+print('Encoding segments...')
 start = time.time()
 embedding = encoder.encode(sentences, convert_to_tensor=True)
 test_sentences_embedding = encoder.encode(test_sentences, convert_to_tensor=True)
-print(f"Encoding completed in {time.time() - start} seconds")
+print(f"Encoding completed in {time.time() - start} seconds.")
 
 num_samples, embeddings_dim = embedding.size()
 n_labels = labels.unique().shape[0]
 
 classifier = Classifier(embeddings_dim, n_labels, dropout=0.01)
 
-model_output, prob = classifier(test_sentences_embedding)
-print(model_output, prob)
-print(f'Predicted Labels:{torch.argmax(prob, dim=-1)}')
+optimizer = optim.Adam(classifier.parameters())
+loss_fn = nn.CrossEntropyLoss()
+
+for e in range(10):
+    optimizer.zero_grad()
+    model_output, prob = classifier(embedding)
+    loss = loss_fn(model_output, labels)
+    loss.backward()
+    optimizer.step()
+    print(loss.item())
+
+
+with torch.no_grad():
+    model_output, prob = classifier(test_sentences_embedding)
+    print(model_output, prob)
+    print(f'True Labels: {test_labels}')
+    print(f'Predicted Labels:{torch.argmax(prob, dim=-1)}')
