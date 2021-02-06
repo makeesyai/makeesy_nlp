@@ -59,7 +59,6 @@ encoder = SentenceTransformer('quora-distilbert-multilingual')
 print("Encoding the segments...")
 start = time.time()
 embedding = encoder.encode(sentences, convert_to_tensor=True)
-test_sentences_embedding = encoder.encode(test_sentences, convert_to_tensor=True)
 print(f"Encoding completed in {time.time() - start} seconds")
 
 num_samples, embeddings_dim = embedding.size()
@@ -67,6 +66,6 @@ n_labels = labels.unique().shape[0]
 
 classifier = Classifier(embeddings_dim, n_labels, dropout=0.01)
 
-model_output, prob = classifier(test_sentences_embedding)
+model_output, prob = classifier(embedding)
 print(model_output, prob)
 print(f'Predicted Labels:{torch.argmax(prob, dim=-1)}')
