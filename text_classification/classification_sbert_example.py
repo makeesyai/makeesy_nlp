@@ -11,7 +11,7 @@ Install pandas (data loading)
 4. Data Iterator
 
 5. Train the model on Spam detection task
-6. Add Tweet data (train and evaluate)
+6. Add Tweeter data (train and evaluate)
 """
 import time
 
@@ -36,9 +36,9 @@ class Batcher(object):
         self.y = y
         self.batch_size = batch_size
         self.num_samples = x.shape[0]
-        self.indices = np.arange(self.num_samples)
-        self.rnd = np.random.RandomState()
-        self.rnd.shuffle(self.indices)
+        # self.indices = torch.arange(self.num_samples)
+        # self.rnd = np.random.RandomState()
+        self.indices = torch.randperm(self.num_samples)
         self.pointer = 0
 
     def __iter__(self):
@@ -46,13 +46,14 @@ class Batcher(object):
 
     def __next__(self):
         if self.pointer + self.batch_size > self.num_samples:
-            self.rnd.shuffle(self.indices)
+            self.indices = torch.randperm(self.num_samples)
+            # self.rnd.shuffle(self.indices)
             self.pointer = 0
             raise StopIteration
         else:
             batch = self.indices[self.pointer:self.pointer + self.batch_size]
             self.pointer += self.batch_size
-            return torch.tensor(self.x[batch]), torch.tensor(self.y[batch], dtype=torch.long)
+            return self.x[batch], self.y[batch]
 
 
 class Classifier(nn.Module):
@@ -69,8 +70,8 @@ class Classifier(nn.Module):
         return logits, F.softmax(logits, dim=-1)
 
 
-data = pd.read_csv("../data/nlp-getting-started/train.csv")
-# data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
+# data = pd.read_csv("../data/nlp-getting-started/train.csv")
+data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
 data.rename(columns={'Message': 'text', 'Category': 'target'}, inplace=True)
 
 # Convert String Labels to integer labels
@@ -82,12 +83,12 @@ X_train, X_test, y_train, y_test = \
     train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15)
 
 sentences = X_train.tolist()
-labels = np.array(y_train.tolist())
+labels = torch.tensor(y_train.tolist())
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 encoder = SentenceTransformer('quora-distilbert-multilingual')
 start_time = time.time()
-sentence_embeddings = encoder.encode(sentences)
+sentence_embeddings = encoder.encode(sentences, convert_to_tensor=True)
 print(f'The encoding time:{time.time() - start_time}')
 
 use_cuda = True if torch.cuda.is_available() else False
@@ -98,7 +99,7 @@ batch_size = 16
 training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch_size)
 
 num_labels = np.unique(labels).shape[0]
-classifier = Classifier(embedding_dim, num_labels, dropout=0.1)
+classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
 
 classifier.to(device)
 
