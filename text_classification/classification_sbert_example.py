@@ -26,6 +26,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 from text_classification.model_utils import set_seed
+
 # Set seed for results reproduction
 set_seed(123)
 
@@ -70,9 +71,22 @@ class Classifier(nn.Module):
         return logits, F.softmax(logits, dim=-1)
 
 
-# data = pd.read_csv("../data/nlp-getting-started/train.csv")
-data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
-data.rename(columns={'Message': 'text', 'Category': 'target'}, inplace=True)
+# data = pd.read_csv("../data/nlp-getting-started/train.csv", dtype=object)
+# data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv", dtype=object)
+data = pd.read_csv("../data/disaster-response-en-fr/disaster_response_messages_training.csv",
+                   dtype={'message': str, 'original': str, 'request': int})
+
+data.rename(columns={
+    'Message': 'text',
+    'Category': 'target',
+    'message': 'text',
+    'original': 'text_fr',
+    'request': 'target'
+},
+    inplace=True)
+
+data = data[['text', 'text_fr', 'target']]
+data.dropna(inplace=True)
 
 # Convert String Labels to integer labels
 le = LabelEncoder()
@@ -80,7 +94,10 @@ le.fit(data.target)
 data['labels'] = le.transform(data.target)
 
 X_train, X_test, y_train, y_test = \
-    train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15)
+    train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
+
+X_train_fr, X_test_fr, y_train_fr, y_test_fr = \
+    train_test_split(data.text_fr, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
 sentences = X_train.tolist()
 labels = torch.tensor(y_train.tolist())
@@ -99,7 +116,7 @@ batch_size = 16
 training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch_size)
 
 num_labels = np.unique(labels).shape[0]
-classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
+classifier = Classifier(embedding_dim, num_labels, dropout=0.1)
 
 classifier.to(device)
 
@@ -107,7 +124,9 @@ optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
 test_sentences = X_test.tolist()
+test_sentences_fr = X_test_fr.tolist()
 test_labels = y_test.tolist()
+test_labels_fr = y_test_fr.tolist()
 
 # Uncomment the following code test the zero-shot Multilingual transfer
 # test_sentences = X_test.tolist()[50]
@@ -128,8 +147,10 @@ with torch.no_grad():
     print(accuracy)
 
 total_loss = 0
-for e in range(30):
+for e in range(100):
+    updates = 0
     for index, batch in enumerate(training_batcher):
+        updates += 1
         optimizer.zero_grad()
         x, y = batch
         x = x.to(device)
@@ -139,9 +160,10 @@ for e in range(30):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-        if index and index % 100 == 0:
-            print(f'Epoch: {e}, Average loss:{total_loss / (100 * batch_size)}')
-            total_loss = 0
+    print(f'Epoch: {e}, Average loss:{total_loss/updates}')
+    total_loss = 0
+# if index and index % 100 == 0:
+
 
 with torch.no_grad():
     model_outputs, prob = classifier(test_sentence_embeddings)
