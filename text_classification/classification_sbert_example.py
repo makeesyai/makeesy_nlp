@@ -81,7 +81,7 @@ data.rename(columns={
     'Category': 'target',
     'message': 'text',
     'original': 'text_fr',
-    'request': 'target'
+    'related': 'target'
 },
     inplace=True)
 
@@ -116,7 +116,7 @@ batch_size = 16
 training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch_size)
 
 num_labels = np.unique(labels).shape[0]
-classifier = Classifier(embedding_dim, num_labels, dropout=0.1)
+classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
 
 classifier.to(device)
 
@@ -128,13 +128,7 @@ test_sentences_fr = X_test_fr.tolist()
 test_labels = y_test.tolist()
 test_labels_fr = y_test_fr.tolist()
 
-# Uncomment the following code test the zero-shot Multilingual transfer
-# test_sentences = X_test.tolist()[50]
-# test_labels = y_test.tolist()[50]
-# translator = GoogleTranslator(source='en', target='hi')
-# test_sentences = translator.translate_batch(test_sentences)
-
-test_sentence_embeddings = encoder.encode(test_sentences,
+test_sentence_embeddings = encoder.encode(test_sentences_fr,
                                           convert_to_tensor=True)
 test_sentence_embeddings = test_sentence_embeddings.to(device)
 
@@ -142,7 +136,7 @@ test_sentence_embeddings = test_sentence_embeddings.to(device)
 with torch.no_grad():
     model_outputs, prob = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(prob, dim=-1)
-    accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
+    accuracy = classification_report(predicted_labels.data.tolist(), test_labels_fr)
     print(f'Accuracy before training:')
     print(accuracy)
 
@@ -168,7 +162,7 @@ for e in range(30):
 with torch.no_grad():
     model_outputs, prob = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(prob, dim=-1)
-    accuracy = classification_report(predicted_labels.data.tolist(), test_labels)
+    accuracy = classification_report(predicted_labels.data.tolist(), test_labels_fr)
     print(f'Accuracy after training:')
     print(accuracy)
-    print(confusion_matrix(predicted_labels.data.tolist(), test_labels))
+    print(confusion_matrix(predicted_labels.data.tolist(), test_labels_fr))
