@@ -147,7 +147,7 @@ with torch.no_grad():
     print(accuracy)
 
 total_loss = 0
-for e in range(100):
+for e in range(30):
     updates = 0
     for index, batch in enumerate(training_batcher):
         updates += 1
