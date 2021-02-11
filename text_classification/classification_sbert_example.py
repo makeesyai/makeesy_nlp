@@ -73,8 +73,9 @@ class Classifier(nn.Module):
 
 # data = pd.read_csv("../data/nlp-getting-started/train.csv", dtype=object)
 # data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv", dtype=object)
-data = pd.read_csv("../data/disaster-response-en-fr/disaster_response_messages_training.csv",
-                   dtype={'message': str, 'original': str, 'request': int})
+data = pd.read_csv("../data/spam/data-en-hi.csv", dtype=object)
+# data = pd.read_csv("../data/disaster-response-en-fr/disaster_response_messages_training.csv",
+#                    dtype={'message': str, 'original': str, 'request': int})
 
 data.rename(columns={
     'Message': 'text',
@@ -85,7 +86,8 @@ data.rename(columns={
 },
     inplace=True)
 
-data = data[['text', 'text_fr', 'target']]
+# data = data[['text', 'text_fr', 'target']]
+data = data[['text', 'text_hi', 'target']]
 data.dropna(inplace=True)
 
 # Convert String Labels to integer labels
@@ -97,7 +99,7 @@ X_train, X_test, y_train, y_test = \
     train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
 X_train_fr, X_test_fr, y_train_fr, y_test_fr = \
-    train_test_split(data.text_fr, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
+    train_test_split(data.text_hi, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
 sentences = X_train.tolist()
 labels = torch.tensor(y_train.tolist())
