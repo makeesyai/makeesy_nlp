@@ -26,7 +26,7 @@ model = EasyNMT('opus-mt')
 sentences_translated = list()
 while True:
     batch = sentences[start:min(start + batch_size, num_samples)]
-    batch_translated = model.translate(batch, source_lang='en', target_lang='hi')
+    batch_translated = model.translate_sentences(batch, source_lang='en', target_lang='hi')
     sentences_translated.extend(batch_translated)
     print(batch_translated)
     if start > num_samples:
