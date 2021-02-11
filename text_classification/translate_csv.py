@@ -1,7 +1,8 @@
 import pandas as pd
 
 # data = pd.read_csv("../data/nlp-getting-started/train.csv", dtype=object)
-data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv", dtype=object)
+# data = pd.read_csv("../data/spam/SPAM text message 20170820 - Data.csv", dtype=object)
+data = pd.read_csv("../data/spam/data-en-hi-de.csv", dtype=object)
 
 data.rename(columns={
     'Message': 'text',
@@ -12,7 +13,7 @@ data.rename(columns={
 },
     inplace=True)
 
-data = data[['text', 'target']]
+# data = data[['text', 'target']]
 data.dropna(inplace=True)
 
 # Uncomment the following code test the zero-shot Multilingual transfer
@@ -26,12 +27,12 @@ model = EasyNMT('opus-mt')
 sentences_translated = list()
 while True:
     batch = sentences[start:min(start + batch_size, num_samples)]
-    batch_translated = model.translate_sentences(batch, source_lang='en', target_lang='hi')
+    batch_translated = model.translate_sentences(batch, source_lang='en', target_lang='fr')
     sentences_translated.extend(batch_translated)
     print(batch_translated)
     if start > num_samples:
         break
     start += batch_size
 
-data['text_hi'] = sentences_translated
-data.to_csv('../data/spam/data-en-hi.csv')
+data['text_fr'] = sentences_translated
+data.to_csv('../data/spam/data-en-hi-de-fr.csv')

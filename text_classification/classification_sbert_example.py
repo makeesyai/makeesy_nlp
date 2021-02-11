@@ -98,7 +98,7 @@ data['labels'] = le.transform(data.target)
 X_train, X_test, y_train, y_test = \
     train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
-X_train_fr, X_test_fr, y_train_fr, y_test_fr = \
+X_train_zero, X_test_zero, y_train_zero, y_test_zero = \
     train_test_split(data.text_hi, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
 sentences = X_train.tolist()
@@ -126,9 +126,9 @@ optimizer = optim.Adam(classifier.parameters())
 loss_fn = nn.CrossEntropyLoss()
 
 test_sentences = X_test.tolist()
-test_sentences_fr = X_test_fr.tolist()
+test_sentences_fr = X_test_zero.tolist()
 test_labels = y_test.tolist()
-test_labels_fr = y_test_fr.tolist()
+test_labels_zero = y_test_zero.tolist()
 
 test_sentence_embeddings = encoder.encode(test_sentences_fr,
                                           convert_to_tensor=True)
@@ -138,7 +138,7 @@ test_sentence_embeddings = test_sentence_embeddings.to(device)
 with torch.no_grad():
     model_outputs, prob = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(prob, dim=-1)
-    accuracy = classification_report(predicted_labels.data.tolist(), test_labels_fr)
+    accuracy = classification_report(predicted_labels.data.tolist(), test_labels_zero)
     print(f'Accuracy before training:')
     print(accuracy)
 
@@ -164,7 +164,7 @@ for e in range(30):
 with torch.no_grad():
     model_outputs, prob = classifier(test_sentence_embeddings)
     predicted_labels = torch.argmax(prob, dim=-1)
-    accuracy = classification_report(predicted_labels.data.tolist(), test_labels_fr)
+    accuracy = classification_report(predicted_labels.data.tolist(), test_labels_zero)
     print(f'Accuracy after training:')
     print(accuracy)
-    print(confusion_matrix(predicted_labels.data.tolist(), test_labels_fr))
+    print(confusion_matrix(predicted_labels.data.tolist(), test_labels_zero))
