@@ -98,7 +98,7 @@ X_train, X_test, y_train, y_test = \
     train_test_split(data.text, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
 X_train_zero, X_test_zero, y_train_zero, y_test_zero = \
-    train_test_split(data.text_de, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
+    train_test_split(data.text_fr, data.labels, stratify=data.labels, test_size=0.15, random_state=123)
 
 sentences = X_train.tolist()
 labels = torch.tensor(y_train.tolist())
