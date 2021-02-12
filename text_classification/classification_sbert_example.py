@@ -116,7 +116,7 @@ num_sentence, embedding_dim = sentence_embeddings.shape
 batch_size = 16
 training_batcher = Batcher(sentence_embeddings, labels, batch_size=batch_size)
 
-num_labels = np.unique(labels).shape[0]
+num_labels = torch.unique(labels).shape[0]
 classifier = Classifier(embedding_dim, num_labels, dropout=0.01)
 
 classifier.to(device)
