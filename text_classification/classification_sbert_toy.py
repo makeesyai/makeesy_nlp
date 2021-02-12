@@ -56,7 +56,7 @@ test_sentences = [
 test_labels = tensor([0, 1, 0, 1])
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
+encoder = SentenceTransformer('quora-distilbert-multilingual')
 print('Encoding segments...')
 start = time.time()
 embedding = encoder.encode(sentences, convert_to_tensor=True)
