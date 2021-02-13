@@ -9,12 +9,12 @@ Install pandas (data loading)
 2. Indexing (string-labels to ids)
 3. Split train, test (85/15)
 4. Add evaluation code with Precision/Recall/F1
-5. Train the model on Spam detection task using Batch Gradiant Descent
+5. Train the model for Spam detection task using Batch Gradiant Descent
 
 
 6. Train the model on Spam detection task using Stochastic Gradiant Descent
 7. Implement Batch Iterator
-8. Train the model on Spam detection task
+8. Train the model on Spam detection task using Mini Batch Gradiant Descent
 9. Test Zero-shot accuracy
 10. Add Tweeter data (train and evaluate)
 """
