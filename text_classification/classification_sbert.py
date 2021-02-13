@@ -46,7 +46,7 @@ class Classifier(nn.Module):
         return tensor, F.softmax(tensor, dim=-1)
 
 
-data_df = pandas.read_csv("../data/spam/data-en-hi-de-fr.csv")
+data_df = pandas.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
 data_df.dropna(inplace=True)
 data_df.drop_duplicates(inplace=True)
 data_df.rename(columns={
@@ -75,6 +75,7 @@ embedding = encoder.encode(sentences, convert_to_tensor=True)
 test_sentences_embedding = encoder.encode(test_sentences, convert_to_tensor=True)
 print(f"Encoding completed in {time.time() - start} seconds.")
 
+
 num_samples, embeddings_dim = embedding.size()
 n_labels = labels.unique().shape[0]
 
@@ -89,7 +90,7 @@ for e in range(200):
     loss = loss_fn(model_output, labels)
     loss.backward()
     optimizer.step()
-    print(loss.item())
+    print(f'epoch:{e}, total_loss:{loss.item()}')
 
 with torch.no_grad():
     model_output, prob = classifier(test_sentences_embedding)
