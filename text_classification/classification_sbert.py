@@ -11,8 +11,8 @@ Install pandas (data loading)
 4. Add evaluation code with Precision/Recall/F1
 5. Train the model for Spam detection task using Batch Gradiant Descent
 
-
-6. Train the model on Spam detection task using Stochastic Gradiant Descent
+# Load multilingual data for spam classification
+6. Train the model on Spam detection task using Stochastic Gradiant Descent (optional)
 7. Implement Batch Iterator
 8. Train the model on Spam detection task using Mini Batch Gradiant Descent
 9. Test Zero-shot accuracy
@@ -46,7 +46,7 @@ class Classifier(nn.Module):
         return tensor, F.softmax(tensor, dim=-1)
 
 
-data_df = pandas.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
+data_df = pandas.read_csv("../data/spam/data-en-hi-de-fr.csv")
 data_df.dropna(inplace=True)
 data_df.drop_duplicates(inplace=True)
 data_df.rename(columns={
