@@ -26,6 +26,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+
 from torch import nn, optim, tensor
 from torch.nn import functional as F
 
@@ -45,7 +46,7 @@ class Classifier(nn.Module):
         tensor = self.ff(tensor)
         return tensor, F.softmax(tensor, dim=-1)
 
-
+      
 data_df = pandas.read_csv("../data/spam/SPAM text message 20170820 - Data.csv")
 data_df.dropna(inplace=True)
 data_df.drop_duplicates(inplace=True)
