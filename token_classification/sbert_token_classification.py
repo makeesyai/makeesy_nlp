@@ -5,12 +5,36 @@ from torch import nn
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 
+class Classifier(nn.Module):
+    def __init__(self, embedding_dim, num_labels, dropout):
+        super(Classifier, self).__init__()
+        self.embedding_dim = embedding_dim
+        self.num_labels = num_labels
+
+        self.dropout = nn.Dropout(dropout)
+        self.ff = nn.Linear(self.embedding_dim, num_labels)
+
+    def forward(self, inputs):
+        s, t = inputs.size()
+        tensor = self.dropout(inputs)
+        tensor = self.ff(tensor)
+        return tensor.view(-1, self.num_labels)
+
+
 sentences = [
     'This framework generates embeddings for each input sentence .',  # 0
     'Sentences are passed as a list of string .',  # 0
     'The quick brown fox jumps over the lazy dog .',  # 1
     'The lazy dog is also jumping .',  # 1
     'The fox and the dog are playing .'  # 1
+]
+
+labels = [
+    [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 2, 0, 0, 0, 0, 3, 0, 0],
+    [0, 3, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
@@ -54,5 +78,24 @@ for embedding, sentence in zip(embeddings, sentences):
 # This will create a array of pointers to variable length tensors
 np_array = numpy.asarray(sentence_embeddings, dtype=object)
 
-for arr in np_array:
-    print(arr.size())
+model = Classifier(embedding_dim=768, num_labels=4, dropout=0.01)
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters())
+
+for e in range(20):
+    total_loss = 0
+    for emb, label in zip(np_array, labels):
+        label = torch.LongTensor(label)
+        optimizer.zero_grad()
+        model_output = model(emb)
+        loss = loss_fn(model_output, label.view(-1))
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.item()
+    print(total_loss)
+
+for emb, label in zip(np_array, labels):
+    model_output = model(emb)
+    predict = torch.argmax(model_output, dim=-1)
+    print(predict)
+    print(label)
