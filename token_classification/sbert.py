@@ -11,16 +11,17 @@ sentences = [
 
 from sentence_transformers import SentenceTransformer
 
-encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-embedding = encoder.encode(sentences,
+# encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
+encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+embedding = encoder.encode(sentences[0],
                            output_value='token_embeddings',
                            convert_to_tensor=True)
-print(embedding.size())
 tokenizer = encoder.tokenizer
 offset = 1
 sentence_embeddings = []
 pooling = 'first'
 for index, emb in enumerate(embedding):
+    print(emb.size())
     start_sub_token = offset
     token_embeddings = []
     for word in sentences[index].split():
