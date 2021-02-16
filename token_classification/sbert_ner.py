@@ -67,7 +67,7 @@ for embedding, sentence in zip(embeddings, sentences):
         num_sub_tokens = len(sub_tokens)
         all_embeddings = embedding[start_sub_token:start_sub_token + num_sub_tokens]
 
-        if pooling == 'first':
+        if pooling == 'mean':
             final_embeddings = torch.mean(all_embeddings, dim=0)
         elif pooling == 'last':
             final_embeddings = all_embeddings[-1]
