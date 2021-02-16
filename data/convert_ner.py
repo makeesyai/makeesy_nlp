@@ -1,9 +1,14 @@
-import numpy
+import json
 import pandas as pd
 
 data = pd.read_csv('../data/ner/ner_dataset.csv')
+tags = list(set(data["Tag"].values.tolist()))
 
+with open('../data/ner/labels.json', 'w', encoding='utf8') as f:
+    json.dump(tags, f, indent=4)
+exit()
 data = data.fillna(method='ffill')
+
 agg_func = lambda s: [(w, p, t) for w, p, t in zip(s["Word"].values.tolist(),
                                                    s["POS"].values.tolist(),
                                                    s["Tag"].values.tolist())]
