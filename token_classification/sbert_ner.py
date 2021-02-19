@@ -41,6 +41,7 @@ for label in labels:
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+
 embeddings = encoder.encode(sentences,
                             output_value='token_embeddings',
                             convert_to_numpy=False,
