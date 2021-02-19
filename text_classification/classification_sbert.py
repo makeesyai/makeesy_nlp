@@ -26,6 +26,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+
 from torch import nn, optim, tensor
 from torch.nn import functional as F
 
@@ -70,6 +71,7 @@ class Batcher(object):
 
 
 data_df = pandas.read_csv("../data/spam/data-en-hi-de-fr.csv")
+     
 data_df.dropna(inplace=True)
 data_df.drop_duplicates(inplace=True)
 data_df.rename(columns={
