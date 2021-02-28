@@ -12,12 +12,15 @@ tokenized = ['The', 'quick', 'brown', 'f', '##ox', 'jump', '##s', 'over', 'the',
 
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+encoder = SentenceTransformer('quora-distilbert-multilingual')
 embeddings = encoder.encode(sentences,
                             output_value='token_embeddings',
                             convert_to_tensor=True)
 tokenizer = encoder.tokenizer
 
+for token in sentences[0].split():
+    print(tokenizer.tokenize(token))
+exit()
 # Most models have an initial BOS/CLS token, except for XLNet, T5 and GPT2
 begin_offset = 1
 if type(tokenizer) == XLNetTokenizer:
