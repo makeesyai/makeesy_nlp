@@ -4,12 +4,12 @@ from sentence_transformers import SentenceTransformer
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 sentences = [
-    'This framework generates embeddings for each input sentence .',  # 0
-    'Sentences are passed as a list of string .',  # 0
-    'The quick brown fox jumps over the lazy dog .',  # 1
-    'The lazy dog is also jumping .',  # 1
-    'The fox and the dog are playing .'  # 1
+    'The quick brown fox jumps over the lazy dog .'
 ]
+
+labels = ['O', 'O', 'O', 'Animal', 'O', 'O', 'O', 'O', 'Animal', 'O']
+tokenized = ['The', 'quick', 'brown', 'f', '##ox', 'jump', '##s', 'over', 'the', 'la', '##zy', 'dog', '.']
+
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
