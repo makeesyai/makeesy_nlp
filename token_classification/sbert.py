@@ -1,7 +1,4 @@
-import numpy
-import torch
 from sentence_transformers import SentenceTransformer
-from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 sentences = [
     'This framework generates embeddings for each input sentence .',  # 0
@@ -49,7 +46,5 @@ for embedding, sentence in zip(embeddings, sentences):
 
     sentence_embeddings.append(torch.stack(true_embeddings))
 
-# This will create a array of pointers to variable length tensors
-np_array = numpy.asarray(sentence_embeddings, dtype=object)
-for arr in np_array:
-    print(arr.size())
+embeddings = encoder.encode(sentences, output_value="token_embeddings")
+print(embeddings.shape)
