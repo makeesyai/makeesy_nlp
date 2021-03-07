@@ -1,4 +1,6 @@
+import torch
 from sentence_transformers import SentenceTransformer
+from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 sentences = [
     'This framework generates embeddings for each input sentence .',  # 0
