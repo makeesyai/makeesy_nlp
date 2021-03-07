@@ -10,7 +10,6 @@ sentences = [
     'The fox and the dog are playing .'  # 1
 ]
 
-# encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 encoder = SentenceTransformer('quora-distilbert-multilingual')
 embeddings = encoder.encode(sentences,
                             output_value='token_embeddings',
@@ -48,5 +47,5 @@ for embedding, sentence in zip(embeddings, sentences):
 
     sentence_embeddings.append(torch.stack(true_embeddings))
 
-embeddings = encoder.encode(sentences, output_value="token_embeddings")
-print(embeddings.shape)
+for emb in sentence_embeddings:
+    print(emb.size())
