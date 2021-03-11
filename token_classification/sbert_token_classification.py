@@ -22,19 +22,18 @@ class Classifier(nn.Module):
 
 
 sentences = [
-    'This framework generates embeddings for each input sentence .',  # 0
-    'Sentences are passed as a list of string .',  # 0
-    'The quick brown fox jumps over the lazy dog .',  # 1
-    'The lazy dog is also jumping .',  # 1
-    'The fox and the dog are playing .'  # 1
+    'The quick brown fox jumps over the lazy dog .',
+    'The lazy dog is also jumping .',
+    'The fox and the dog are playing .'
 ]
 
+label2ids = {'O': 0, 'Animal': 1, 'Props': 2}
+id2label = {0: 'O', 1: 'Animal', 2: 'Props'}
+
 labels = [
-    [0, 0, 0, 0, 0, 0, 0, 1, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 2, 2, 0, 0, 0, 0, 3, 0, 0],
-    [0, 3, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 2, 1, 0, 0, 0, 2, 1, 0],
+    [0, 2, 1, 0, 0, 0, 0],
+    [0, 1, 0, 0, 1, 0, 0, 0],
 ]
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
