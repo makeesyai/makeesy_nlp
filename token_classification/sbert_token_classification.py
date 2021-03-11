@@ -96,5 +96,5 @@ for e in range(20):
 for emb, label in zip(np_array, labels):
     model_output = model(emb)
     predict = torch.argmax(model_output, dim=-1)
-    print(predict)
+    print(predict.tolist())
     print(label)
