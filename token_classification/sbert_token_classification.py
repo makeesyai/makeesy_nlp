@@ -2,6 +2,7 @@ import numpy
 import torch
 from sentence_transformers import SentenceTransformer
 from torch import nn
+from torch.nn.functional import softmax
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 
@@ -39,7 +40,8 @@ class Classifier(nn.Module):
         tensor = self.dropout(inputs)
         tensor = self.ff(tensor)
         tensor = tensor.view(-1, self.num_labels)
-        return tensor
+        predict = softmax(tensor, dim=-1)
+        return tensor, predict
 
 
 sentences = [
@@ -111,7 +113,7 @@ for e in range(50):
     for emb, label in zip(sentence_embeddings, labels):
         label = torch.LongTensor(label)
         optimizer.zero_grad()
-        model_output = model(emb)
+        model_output, _ = model(emb)
         loss = loss_fn(model_output, label.view(-1))
         loss.backward()
         optimizer.step()
@@ -120,6 +122,6 @@ for e in range(50):
 
 for emb, label in zip(sentence_embeddings, labels):
     model_output = model(emb)
-    predict = torch.argmax(model_output, dim=-1)
+    _, predict = torch.argmax(model_output, dim=-1)
     print(predict.tolist())
     print(label)
