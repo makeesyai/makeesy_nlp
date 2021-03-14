@@ -13,8 +13,7 @@ sentences = [
     'The fox and the dog are playing .'  # 1
 ]
 
-# encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+encoder = SentenceTransformer('quora-distilbert-multilingual')
 embeddings = encoder.encode(sentences,
                             output_value='token_embeddings',
                             convert_to_tensor=True)
@@ -51,8 +50,5 @@ for embedding, sentence in zip(embeddings, sentences):
 
     sentence_embeddings.append(torch.stack(token_embeddings))
 
-# This will create a array of pointers to variable length tensors
-np_array = numpy.asarray(sentence_embeddings, dtype=object)
-
-for arr in np_array:
+for arr in sentence_embeddings:
     print(arr.size())
