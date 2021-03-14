@@ -58,7 +58,6 @@ labels2id = get_label2id_vocab(labels)
 id2labels = {labels2id[key]: key for key in labels2id}
 labels = get_label_ids(labels, labels2id)
 print(labels)
-exit()
 
 encoder = SentenceTransformer('quora-distilbert-multilingual')
 embeddings = encoder.encode(sentences,
@@ -87,11 +86,11 @@ for embedding, sentence in zip(embeddings, sentences):
         all_embeddings = embedding[start_sub_token:start_sub_token + num_sub_tokens]
 
         if pooling == 'first':
-            final_embeddings = torch.mean(all_embeddings, dim=0)
+            final_embeddings = all_embeddings[0]
         elif pooling == 'last':
             final_embeddings = all_embeddings[-1]
         else:
-            final_embeddings = all_embeddings[0]
+            final_embeddings = torch.mean(all_embeddings, dim=0)
 
         token_embeddings.append(final_embeddings)
         start_sub_token += num_sub_tokens
@@ -102,11 +101,11 @@ for arr in sentence_embeddings:
     print(arr.size())
 
 
-model = Classifier(embedding_dim=768, num_labels=4, dropout=0.01)
+model = Classifier(embedding_dim=768, num_labels=len(labels2id), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for e in range(20):
+for e in range(50):
     total_loss = 0
     for emb, label in zip(sentence_embeddings, labels):
         label = torch.LongTensor(label)
