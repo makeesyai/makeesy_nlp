@@ -6,14 +6,14 @@ from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 
 def get_label2id_vocab(data):
-    label2id = {}
-    id = 0
+    label2idx = {}
+    idx = 0
     for line in data:
         for l in line:
-            if l not in label2id:
-                label2id[l] = id
-                id += 1
-    return label2id
+            if l not in label2idx:
+                label2idx[l] = idx
+                idx += 1
+    return label2idx
 
 
 def get_label_ids(data, labels2ids):
@@ -54,9 +54,10 @@ labels = [
     ['O', 'Animal', 'O', 'O', 'Animal', 'O', 'O', 'O']
 ]
 
-labels2id = get_label2id_vocab(labels)
-id2labels = {labels2id[key]: key for key in labels2id}
-labels = get_label_ids(labels, labels2id)
+labels2idx = get_label2id_vocab(labels)
+idx2labels = {labels2idx[key]: key for key in labels2idx}
+
+labels = get_label_ids(labels, labels2idx)
 print(labels)
 
 encoder = SentenceTransformer('quora-distilbert-multilingual')
@@ -101,7 +102,7 @@ for arr in sentence_embeddings:
     print(arr.size())
 
 
-model = Classifier(embedding_dim=768, num_labels=len(labels2id), dropout=0.01)
+model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
