@@ -121,7 +121,7 @@ for e in range(50):
     print(total_loss)
 
 for emb, label in zip(sentence_embeddings, labels):
-    model_output = model(emb)
-    _, predict = torch.argmax(model_output, dim=-1)
-    print(predict.tolist())
+    _, predict = model(emb)
+    predict_labels = torch.argmax(predict, dim=-1)
+    print(predict_labels.tolist())
     print(label)
