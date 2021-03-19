@@ -45,6 +45,7 @@ class Classifier(nn.Module):
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
 train_sentences = data_df.text.tolist()[0:1500]
+
 labels = data_df.labels.tolist()[0:1500]
 labels = [l.split() for l in labels]
 
@@ -120,7 +121,7 @@ test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 # This will create a array of pointers to variable length tensors
 # np_array = numpy.asarray(sentence_embeddings, dtype=object)
 
-model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
+model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.001)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
@@ -134,6 +135,8 @@ for e in range(20):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
+        print(loss.item())
+
     print(total_loss)
 
 for emb, label in zip(test_embeddings, test_labels):
