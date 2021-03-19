@@ -22,7 +22,7 @@ def get_label_ids(data, labels2ids):
     for line in data:
         label_ids = []
         for l in line:
-            label_ids.append(labels2ids.get(l, 'O'))
+            label_ids.append(labels2ids.get(l, labels2ids.get('O')))
         labels_ids.append(label_ids)
     return labels_ids
 
@@ -124,7 +124,7 @@ model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for e in range(1):
+for e in range(20):
     total_loss = 0
     for emb, label in zip(train_embeddings, labels):
         label = torch.LongTensor(label)
