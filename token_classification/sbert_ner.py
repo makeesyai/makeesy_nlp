@@ -44,12 +44,12 @@ class Classifier(nn.Module):
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
-train_sentences = data_df.text.tolist()[0:15]
-labels = data_df.labels.tolist()[0:15]
+train_sentences = data_df.text.tolist()[0:1500]
+labels = data_df.labels.tolist()[0:1500]
 labels = [l.split() for l in labels]
 
-test_sentences = data_df.text.tolist()[15:20]
-test_labels = data_df.labels.tolist()[15:20]
+test_sentences = data_df.text.tolist()[1500:2000]
+test_labels = data_df.labels.tolist()[1500:2000]
 test_labels = [l.split() for l in test_labels]
 
 labels2idx = get_label2id_vocab(labels)
