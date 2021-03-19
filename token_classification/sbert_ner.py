@@ -1,4 +1,3 @@
-import numpy
 import pandas
 import torch
 from sentence_transformers import SentenceTransformer
@@ -56,19 +55,18 @@ idx2labels = {labels2idx[key]: key for key in labels2idx}
 labels = get_label_ids(labels, labels2idx)
 test_labels = get_label_ids(test_labels, labels2idx)
 
-# encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
-encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
+encoder = SentenceTransformer('quora-distilbert-multilingual')
 
-embeddings = encoder.encode(sentences,
+train_embeddings = encoder.encode(sentences,
                             output_value='token_embeddings',
-                            convert_to_numpy=False,
+                            convert_to_tensor=True,
                             show_progress_bar=True,
                             device='cpu',
                             )
 
 test_embeddings = encoder.encode(test_sentences,
                                  output_value='token_embeddings',
-                                 convert_to_numpy=False,
+                                 convert_to_tensor=True,
                                  show_progress_bar=True,
                                  device='cpu',
                                  )
@@ -111,7 +109,7 @@ def subword2word_embeddings(subword_embeddings, text):
     return sentence_embeddings
 
 
-train_embeddings = subword2word_embeddings(embeddings, sentences)
+train_embeddings = subword2word_embeddings(train_embeddings, sentences)
 test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 # This will create a array of pointers to variable length tensors
 # np_array = numpy.asarray(sentence_embeddings, dtype=object)
@@ -124,6 +122,8 @@ for e in range(20):
     total_loss = 0
     for emb, label in zip(train_embeddings, labels):
         label = torch.LongTensor(label)
+        print(emb.size(), label.size())
+        continue
         optimizer.zero_grad()
         model_output = model(emb)
         loss = loss_fn(model_output, label.view(-1))
