@@ -1,12 +1,30 @@
-import ast
-
 import numpy
 import pandas
 import torch
 from sentence_transformers import SentenceTransformer
-from sklearn.preprocessing import LabelEncoder
 from torch import nn
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
+
+
+def get_label2id_vocab(data):
+    label2idx = {}
+    idx = 0
+    for line in data:
+        for l in line:
+            if l not in label2idx:
+                label2idx[l] = idx
+                idx += 1
+    return label2idx
+
+
+def get_label_ids(data, labels2ids):
+    labels_ids = []
+    for line in data:
+        label_ids = []
+        for l in line:
+            label_ids.append(labels2ids.get(l, 'O'))
+        labels_ids.append(label_ids)
+    return labels_ids
 
 
 class Classifier(nn.Module):
@@ -26,18 +44,17 @@ class Classifier(nn.Module):
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
+sentences = data_df.text.tolist()[0:1500]
+labels = data_df.labels.tolist()[0:1500]
 
-sentences = data_df.text.tolist()
-labels = data_df.labels.tolist()
+test_sentences = data_df.text.tolist()[1500:2000]
+test_labels = data_df.labels.tolist()[1500:2000]
 
-with open('../data/ner/labels.json') as fp:
-    tags = ast.literal_eval(fp.read())
-le = LabelEncoder()
-le.fit(tags)
-label2ids = []
-for label in labels:
-    label2ids.append(le.transform(label.split()))
+labels2idx = get_label2id_vocab(labels)
+idx2labels = {labels2idx[key]: key for key in labels2idx}
 
+labels = get_label_ids(labels, labels2idx)
+test_labels = get_label_ids(test_labels, labels2idx)
 
 # encoder = SentenceTransformer('distilbert-base-nli-mean-tokens')
 encoder = SentenceTransformer('paraphrase-xlm-r-multilingual-v1')
@@ -46,7 +63,16 @@ embeddings = encoder.encode(sentences,
                             output_value='token_embeddings',
                             convert_to_numpy=False,
                             show_progress_bar=True,
-                            device='cpu')
+                            device='cpu',
+                            )
+
+test_embeddings = encoder.encode(test_sentences,
+                                 output_value='token_embeddings',
+                                 convert_to_numpy=False,
+                                 show_progress_bar=True,
+                                 device='cpu',
+                                 )
+
 tokenizer = encoder.tokenizer
 
 # Most models have an initial BOS/CLS token, except for XLNet, T5 and GPT2
@@ -58,38 +84,45 @@ if type(tokenizer) == T5Tokenizer:
 if type(tokenizer) == GPT2Tokenizer:
     begin_offset = 0
 
-sentence_embeddings = []
-pooling = 'mean'
-for embedding, sentence in zip(embeddings, sentences):
-    start_sub_token = begin_offset
-    token_embeddings = []
-    for word in sentence.split():
-        sub_tokens = tokenizer.tokenize(word)
-        num_sub_tokens = len(sub_tokens)
-        all_embeddings = embedding[start_sub_token:start_sub_token + num_sub_tokens]
 
-        if pooling == 'mean':
-            final_embeddings = torch.mean(all_embeddings, dim=0)
-        elif pooling == 'last':
-            final_embeddings = all_embeddings[-1]
-        else:
-            final_embeddings = all_embeddings[0]
+def subword2word_embeddings(subword_embeddings, text):
+    sentence_embeddings = []
+    pooling = 'mean'
+    for embedding, sentence in zip(subword_embeddings, text):
+        start_sub_token = begin_offset
+        token_embeddings = []
+        for word in sentence.split():
+            sub_tokens = tokenizer.tokenize(word)
+            num_sub_tokens = len(sub_tokens)
+            all_embeddings = embedding[start_sub_token:start_sub_token + num_sub_tokens]
 
-        token_embeddings.append(final_embeddings)
-        start_sub_token += num_sub_tokens
+            if pooling == 'mean':
+                final_embeddings = torch.mean(all_embeddings, dim=0)
+            elif pooling == 'last':
+                final_embeddings = all_embeddings[-1]
+            else:
+                final_embeddings = all_embeddings[0]
 
-    sentence_embeddings.append(torch.stack(token_embeddings))
+            token_embeddings.append(final_embeddings)
+            start_sub_token += num_sub_tokens
 
+        sentence_embeddings.append(torch.stack(token_embeddings))
+
+    return sentence_embeddings
+
+
+train_embeddings = subword2word_embeddings(embeddings, sentences)
+test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 # This will create a array of pointers to variable length tensors
-np_array = numpy.asarray(sentence_embeddings, dtype=object)
+# np_array = numpy.asarray(sentence_embeddings, dtype=object)
 
-model = Classifier(embedding_dim=768, num_labels=4, dropout=0.01)
+model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 for e in range(20):
     total_loss = 0
-    for emb, label in zip(np_array, label2ids):
+    for emb, label in zip(train_embeddings, labels):
         label = torch.LongTensor(label)
         optimizer.zero_grad()
         model_output = model(emb)
@@ -99,8 +132,8 @@ for e in range(20):
         total_loss += loss.item()
     print(total_loss)
 
-for emb, label in zip(np_array, labels):
+for emb, label in zip(test_embeddings, test_labels):
     model_output = model(emb)
     predict = torch.argmax(model_output, dim=-1)
-    print(predict)
+    print(predict.tolist())
     print(label)
