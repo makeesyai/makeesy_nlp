@@ -2,6 +2,7 @@ import pandas
 import torch
 from sentence_transformers import SentenceTransformer
 from torch import nn
+from torch import from_numpy
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 
@@ -60,12 +61,14 @@ encoder = SentenceTransformer('quora-distilbert-multilingual')
 train_embeddings = encoder.encode(sentences,
                                   output_value='token_embeddings',
                                   show_progress_bar=True,
+                                  convert_to_tensor=False,
                                   device='cpu',
                                   )
 
 test_embeddings = encoder.encode(test_sentences,
                                  output_value='token_embeddings',
                                  show_progress_bar=True,
+                                 convert_to_tensor=False,
                                  device='cpu',
                                  )
 
@@ -91,6 +94,9 @@ def subword2word_embeddings(subword_embeddings, text):
             sub_tokens = tokenizer.tokenize(word)
             num_sub_tokens = len(sub_tokens)
             all_embeddings = embedding[start_sub_token:start_sub_token + num_sub_tokens]
+
+            # Convert numpy embeddings to tensor
+            all_embeddings = from_numpy(all_embeddings)
 
             if pooling == 'mean':
                 final_embeddings = torch.mean(all_embeddings, dim=0)
