@@ -44,11 +44,13 @@ class Classifier(nn.Module):
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
-sentences = data_df.text.tolist()[0:1500]
-labels = data_df.labels.tolist()[0:1500]
+train_sentences = data_df.text.tolist()[0:15]
+labels = data_df.labels.tolist()[0:15]
+labels = [l.split() for l in labels]
 
-test_sentences = data_df.text.tolist()[1500:2000]
-test_labels = data_df.labels.tolist()[1500:2000]
+test_sentences = data_df.text.tolist()[15:20]
+test_labels = data_df.labels.tolist()[15:20]
+test_labels = [l.split() for l in test_labels]
 
 labels2idx = get_label2id_vocab(labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
@@ -58,7 +60,7 @@ test_labels = get_label_ids(test_labels, labels2idx)
 
 encoder = SentenceTransformer('quora-distilbert-multilingual')
 
-train_embeddings = encoder.encode(sentences,
+train_embeddings = encoder.encode(train_sentences,
                                   output_value='token_embeddings',
                                   show_progress_bar=True,
                                   convert_to_tensor=False,
@@ -113,7 +115,7 @@ def subword2word_embeddings(subword_embeddings, text):
     return sentence_embeddings
 
 
-train_embeddings = subword2word_embeddings(train_embeddings, sentences)
+train_embeddings = subword2word_embeddings(train_embeddings, train_sentences)
 test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 # This will create a array of pointers to variable length tensors
 # np_array = numpy.asarray(sentence_embeddings, dtype=object)
@@ -122,12 +124,10 @@ model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for e in range(20):
+for e in range(1):
     total_loss = 0
     for emb, label in zip(train_embeddings, labels):
         label = torch.LongTensor(label)
-        print(emb.size(), label.size())
-        continue
         optimizer.zero_grad()
         model_output = model(emb)
         loss = loss_fn(model_output, label.view(-1))
