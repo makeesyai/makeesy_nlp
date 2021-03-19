@@ -59,14 +59,12 @@ encoder = SentenceTransformer('quora-distilbert-multilingual')
 
 train_embeddings = encoder.encode(sentences,
                                   output_value='token_embeddings',
-                                  convert_to_tensor=False,
                                   show_progress_bar=True,
                                   device='cpu',
                                   )
 
 test_embeddings = encoder.encode(test_sentences,
                                  output_value='token_embeddings',
-                                 convert_to_tensor=False,
                                  show_progress_bar=True,
                                  device='cpu',
                                  )
