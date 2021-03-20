@@ -140,7 +140,7 @@ optimizer = torch.optim.Adam(model.parameters())
 for e in range(20):
     total_loss = 0
     idx = 0
-    for emb, label in zip(train_embeddings, labels):
+    for emb, label in zip(train_embeddings, train_labels):
         label = torch.LongTensor(label)
         optimizer.zero_grad()
         model_output = model(emb)
