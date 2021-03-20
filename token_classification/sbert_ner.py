@@ -1,3 +1,5 @@
+import math
+
 import pandas
 import torch
 from sentence_transformers import SentenceTransformer
@@ -127,6 +129,7 @@ optimizer = torch.optim.Adam(model.parameters())
 
 for e in range(20):
     total_loss = 0
+    idx = 0
     for emb, label in zip(train_embeddings, labels):
         label = torch.LongTensor(label)
         optimizer.zero_grad()
@@ -135,7 +138,12 @@ for e in range(20):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-        print(loss.item())
+        print(idx, loss.item())
+        idx += 1
+        if math.isnan(loss.item()):
+            print(label)
+            print(label.size(), emb.size(), model_output.size())
+            exit()
 
     print(total_loss)
 
