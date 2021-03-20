@@ -3,6 +3,7 @@ import math
 import pandas
 import torch
 from sentence_transformers import SentenceTransformer
+from sklearn.metrics import classification_report
 from torch import nn
 from torch import from_numpy
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
@@ -149,8 +150,13 @@ for e in range(20):
         total_loss += loss.item()
     print(total_loss)
 
+final_predictions = []
+final_labels = []
 for emb, label in zip(test_embeddings, test_labels):
     model_output = model(emb)
     predict = torch.argmax(model_output, dim=-1)
-    print(predict.tolist())
-    print(label)
+    final_predictions.extend(predict.tolist())
+    final_labels.extend(label)
+
+print(classification_report(final_predictions, final_labels))
+
