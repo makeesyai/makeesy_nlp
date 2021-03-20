@@ -44,6 +44,7 @@ class Classifier(nn.Module):
         tensor = self.ff(tensor)
         return tensor.view(-1, self.num_labels)
 
+
 data_df = pandas.read_csv('../data/ner/ner.csv')
 sentences = data_df.text.tolist()
 labels = data_df.labels.tolist()
