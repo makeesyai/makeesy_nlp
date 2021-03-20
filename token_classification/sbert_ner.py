@@ -66,12 +66,12 @@ for text, label in zip(sentences, labels):
     else:
         sys.stderr.write(f'Ignored example: {text} {label}\n')
 
-train_sentences = sentences_filtered[0:1500]
-train_labels = labels_filtered[0:1500]
+train_sentences = sentences_filtered[0:4500]
+train_labels = labels_filtered[0:4500]
 train_labels = [l.split() for l in train_labels]
 
-test_sentences = sentences_filtered[1500:2000]
-test_labels = labels_filtered[1500:2000]
+test_sentences = sentences_filtered[4500:5000]
+test_labels = labels_filtered[4500:5000]
 test_labels = [l.split() for l in test_labels]
 
 labels2idx = get_label2id_vocab(train_labels)
@@ -146,7 +146,7 @@ model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for e in range(50):
+for e in range(10):
     total_loss = 0
     for emb, label in zip(train_embeddings, train_labels):
         label = torch.LongTensor(label)
