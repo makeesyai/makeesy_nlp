@@ -68,7 +68,7 @@ test_labels = [l.split() for l in test_labels]
 labels2idx = get_label2id_vocab(labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
 
-labels = get_label_ids(labels, labels2idx)
+train_labels = get_label_ids(train_labels, labels2idx)
 test_labels = get_label_ids(test_labels, labels2idx)
 
 encoder = SentenceTransformer('quora-distilbert-multilingual')
