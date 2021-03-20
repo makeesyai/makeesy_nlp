@@ -44,7 +44,6 @@ class Classifier(nn.Module):
         tensor = self.ff(tensor)
         return tensor.view(-1, self.num_labels)
 
-
 data_df = pandas.read_csv('../data/ner/ner.csv')
 sentences = data_df.text.tolist()
 labels = data_df.labels.tolist()
@@ -65,7 +64,7 @@ test_sentences = sentences_filtered[1500:2000]
 test_labels = labels_filtered[1500:2000]
 test_labels = [l.split() for l in test_labels]
 
-labels2idx = get_label2id_vocab(labels)
+labels2idx = get_label2id_vocab(train_labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
 
 train_labels = get_label_ids(train_labels, labels2idx)
@@ -139,7 +138,6 @@ optimizer = torch.optim.Adam(model.parameters())
 
 for e in range(20):
     total_loss = 0
-    idx = 0
     for emb, label in zip(train_embeddings, train_labels):
         label = torch.LongTensor(label)
         optimizer.zero_grad()
@@ -148,13 +146,6 @@ for e in range(20):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-        print(idx, loss.item())
-        idx += 1
-        if math.isnan(loss.item()):
-            print(label)
-            print(label.size(), emb.size(), model_output.size())
-            exit()
-
     print(total_loss)
 
 for emb, label in zip(test_embeddings, test_labels):
