@@ -1,13 +1,19 @@
 import sys
+import warnings
 
 import pandas
 import torch
+from numpy import VisibleDeprecationWarning
 from sentence_transformers import SentenceTransformer
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import classification_report
 from torch import nn
 from torch import from_numpy
 from torch.nn.functional import softmax
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
+
+warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)
 
 
 def get_label2id_vocab(data):
