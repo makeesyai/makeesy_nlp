@@ -1,3 +1,5 @@
+import sys
+
 import pandas
 import torch
 from sentence_transformers import SentenceTransformer
@@ -56,7 +58,7 @@ for text, label in zip(sentences, labels):
         sentences_filtered.append(text)
         labels_filtered.append(label)
     else:
-        print(f'ignored: {text} {label}')
+        sys.stderr.write(f'Ignored example: {text} {label}\n')
 
 train_sentences = sentences_filtered[0:1500]
 train_labels = labels_filtered[0:1500]
