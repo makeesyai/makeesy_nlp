@@ -169,4 +169,6 @@ for emb, label in zip(test_embeddings, test_labels):
     final_predictions.extend(predict_labels.tolist())
     final_labels.extend(label)
 
+# Recommend for reading
+# https://towardsdatascience.com/multi-class-metrics-made-simple-part-ii-the-f1-score-ebe8b2c2ca1
 print(classification_report(final_predictions, final_labels))
