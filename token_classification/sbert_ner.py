@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics import classification_report
 from torch import nn
 from torch import from_numpy
+from torch.nn.functional import softmax
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
 
@@ -40,10 +41,11 @@ class Classifier(nn.Module):
         self.ff = nn.Linear(self.embedding_dim, num_labels)
 
     def forward(self, inputs):
-        s, t = inputs.size()
         tensor = self.dropout(inputs)
         tensor = self.ff(tensor)
-        return tensor.view(-1, self.num_labels)
+        tensor = tensor.view(-1, self.num_labels)
+        predict = softmax(tensor, dim=-1)
+        return tensor, predict
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
@@ -138,12 +140,12 @@ model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.001)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for e in range(20):
+for e in range(50):
     total_loss = 0
     for emb, label in zip(train_embeddings, train_labels):
         label = torch.LongTensor(label)
         optimizer.zero_grad()
-        model_output = model(emb)
+        model_output, _ = model(emb)
         loss = loss_fn(model_output, label.view(-1))
         loss.backward()
         optimizer.step()
@@ -153,10 +155,9 @@ for e in range(20):
 final_predictions = []
 final_labels = []
 for emb, label in zip(test_embeddings, test_labels):
-    model_output = model(emb)
-    predict = torch.argmax(model_output, dim=-1)
-    final_predictions.extend(predict.tolist())
+    _, predict_prob = model(emb)
+    predict_labels = torch.argmax(predict_prob, dim=-1)
+    final_predictions.extend(predict_labels.tolist())
     final_labels.extend(label)
 
 print(classification_report(final_predictions, final_labels))
-
