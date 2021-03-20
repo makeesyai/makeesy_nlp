@@ -1,4 +1,3 @@
-import numpy
 import torch
 from sentence_transformers import SentenceTransformer
 from torch import nn
