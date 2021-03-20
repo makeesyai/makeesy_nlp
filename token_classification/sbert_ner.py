@@ -142,7 +142,9 @@ test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 # This will create a array of pointers to variable length tensors
 # np_array = numpy.asarray(sentence_embeddings, dtype=object)
 
-model = Classifier(embedding_dim=768, num_labels=len(labels2idx), dropout=0.01)
+n_samples, emb_dim = train_embeddings.size()
+
+model = Classifier(embedding_dim=emb_dim, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
@@ -156,7 +158,7 @@ for e in range(10):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-    print(total_loss)
+    print(total_loss/n_samples)
 
 final_predictions = []
 final_labels = []
