@@ -144,8 +144,7 @@ test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 
 n_samples = len(train_embeddings)
 _, emb_dim = train_embeddings[0].size()
-print(n_samples, emb_dim)
-exit()
+
 model = Classifier(embedding_dim=emb_dim, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
