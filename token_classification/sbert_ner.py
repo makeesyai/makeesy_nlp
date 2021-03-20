@@ -46,13 +46,23 @@ class Classifier(nn.Module):
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
-train_sentences = data_df.text.tolist()[0:1500]
+sentences = data_df.text.tolist()
+labels = data_df.labels.tolist()
+sentences_filtered = []
+labels_filtered = []
+for text, label in zip(sentences, labels):
+    if len(text.split()) == len(label.split()):
+        sentences_filtered.append(text)
+        labels_filtered.append(label)
+    else:
+        print(f'ignored: {text} {label}')
 
-labels = data_df.labels.tolist()[0:1500]
-labels = [l.split() for l in labels]
+train_sentences = sentences_filtered[0:1500]
+train_labels = labels_filtered[0:1500]
+train_labels = [l.split() for l in train_labels]
 
-test_sentences = data_df.text.tolist()[1500:2000]
-test_labels = data_df.labels.tolist()[1500:2000]
+test_sentences = sentences_filtered[1500:2000]
+test_labels = labels_filtered[1500:2000]
 test_labels = [l.split() for l in test_labels]
 
 labels2idx = get_label2id_vocab(labels)
@@ -118,7 +128,7 @@ def subword2word_embeddings(subword_embeddings, text):
     return sentence_embeddings
 
 
-train_embeddings = subword2word_embeddings(train_embeddings, train_sentences)
+train_embeddings = subword2word_embeddings(train_embeddings, sentences_filtered)
 test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 # This will create a array of pointers to variable length tensors
 # np_array = numpy.asarray(sentence_embeddings, dtype=object)
