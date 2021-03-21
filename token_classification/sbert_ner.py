@@ -56,6 +56,7 @@ class Classifier(nn.Module):
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
+print(data_df.head())
 sentences = data_df.text.tolist()
 labels = data_df.labels.tolist()
 sentences_filtered = []
