@@ -12,6 +12,7 @@ from torch import from_numpy
 from torch.nn.functional import softmax
 from transformers import XLNetTokenizer, T5Tokenizer, GPT2Tokenizer
 
+# Add these to silence the warnings
 warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)
 
