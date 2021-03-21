@@ -50,8 +50,8 @@ class Classifier(nn.Module):
         tensor = self.dropout(inputs)
         tensor = self.ff(tensor)
         tensor = tensor.view(-1, self.num_labels)
-        predict = softmax(tensor, dim=-1)
-        return tensor, predict
+        probs = softmax(tensor, dim=-1)
+        return tensor, probs
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
@@ -164,8 +164,8 @@ for e in range(10):
 final_predictions = []
 final_labels = []
 for emb, label in zip(test_embeddings, test_labels):
-    _, predict_prob = model(emb)
-    predict_labels = torch.argmax(predict_prob, dim=-1)
+    _, probs = model(emb)
+    predict_labels = torch.argmax(probs, dim=-1)
     final_predictions.extend(predict_labels.tolist())
     final_labels.extend(label)
 
