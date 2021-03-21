@@ -168,7 +168,7 @@ for e in range(10):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-    print(total_loss/n_samples)
+    print(f'Epoch:{e}, Loss: {total_loss/n_samples}')
 
 final_predictions = []
 final_labels = []
