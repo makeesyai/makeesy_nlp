@@ -66,19 +66,26 @@ for text, label in zip(sentences, labels):
     else:
         sys.stderr.write(f'Ignored example: {text} {label}\n')
 
+
+labels_filtered = [l.split() for l in labels_filtered]
 train_sentences = sentences_filtered[0:4500]
 train_labels = labels_filtered[0:4500]
-train_labels = [l.split() for l in train_labels]
 
 test_sentences = sentences_filtered[4500:5000]
 test_labels = labels_filtered[4500:5000]
-test_labels = [l.split() for l in test_labels]
 
 labels2idx = get_label2id_vocab(train_labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
 
 train_labels = get_label_ids(train_labels, labels2idx)
 test_labels = get_label_ids(test_labels, labels2idx)
+
+# Models:
+# SBERT: https://www.sbert.net/docs/pretrained_models.html
+# Huggingface: https://huggingface.co/models
+#
+# DATA
+# Download link: https://www.kaggle.com/abhinavwalia95/entity-annotated-corpus
 
 encoder = SentenceTransformer('quora-distilbert-multilingual')
 
