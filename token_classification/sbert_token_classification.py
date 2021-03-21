@@ -1,4 +1,3 @@
-import numpy
 import torch
 from sentence_transformers import SentenceTransformer
 from torch import nn
@@ -22,7 +21,7 @@ def get_label_ids(data, labels2ids):
     for line in data:
         label_ids = []
         for l in line:
-            label_ids.append(labels2ids.get(l, 'O'))
+            label_ids.append(labels2ids.get(l, labels2ids.get('O')))
         labels_ids.append(label_ids)
     return labels_ids
 
@@ -121,7 +120,7 @@ for e in range(50):
     print(total_loss)
 
 for emb, label in zip(sentence_embeddings, labels):
-    _, predict = model(emb)
-    predict_labels = torch.argmax(predict, dim=-1)
+    _, predict_prob = model(emb)
+    predict_labels = torch.argmax(predict_prob, dim=-1)
     print(predict_labels.tolist())
     print(label)
