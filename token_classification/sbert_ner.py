@@ -89,7 +89,8 @@ test_labels = get_label_ids(test_labels, labels2idx)
 # DATA
 # Download link: https://www.kaggle.com/abhinavwalia95/entity-annotated-corpus
 
-encoder = SentenceTransformer('quora-distilbert-multilingual')
+# encoder = SentenceTransformer('quora-distilbert-multilingual')
+encoder = SentenceTransformer('distilbert-multilingual-nli-stsb-quora-ranking')
 
 train_embeddings = encoder.encode(train_sentences,
                                   output_value='token_embeddings',
@@ -128,8 +129,9 @@ def subword2word_embeddings(subword_embeddings, text):
             num_sub_tokens = len(sub_tokens)
             all_embeddings = embedding[start_sub_token:start_sub_token + num_sub_tokens]
 
-            # Convert numpy embeddings to tensor
-            all_embeddings = from_numpy(all_embeddings)
+            if not isinstance(all_embeddings, torch.Tensor):
+                # Convert numpy embeddings to tensor
+                all_embeddings = from_numpy(all_embeddings)
 
             if pooling == 'mean':
                 final_embeddings = torch.mean(all_embeddings, dim=0)
