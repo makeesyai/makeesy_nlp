@@ -19,8 +19,8 @@ warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)
 
 
 def get_label2id_vocab(data):
-    label2idx = {}
-    idx = 0
+    label2idx = {'PAD': 0, 'UNK': 1}
+    idx = len(label2idx)
     for line in data:
         for l in line:
             if l not in label2idx:
@@ -34,7 +34,7 @@ def get_label_ids(data, labels2ids):
     for line in data:
         label_ids = []
         for l in line:
-            label_ids.append(labels2ids.get(l, labels2ids.get('O')))
+            label_ids.append(labels2ids.get(l, labels2ids.get('UNK')))
         labels_ids.append(label_ids)
     return labels_ids
 
@@ -57,7 +57,8 @@ class Classifier(nn.Module):
 
 
 class Batcher(object):
-    def __init__(self, data_x, data_y, batch_size, emb_dim, seed=0):
+    def __init__(self, data_x, data_y, batch_size,
+                 emb_dim, pad_id, pad_id_labels, seed=0):
         self.data_x = data_x
         self.data_y = data_y
         self.batch_size = batch_size
@@ -66,6 +67,8 @@ class Batcher(object):
         self.indices = numpy.arange(self.num_samples)
         self.ptr = 0
         self.rnd = numpy.random.RandomState(seed)
+        self.pad_id = pad_id
+        self.pad_id_labels = pad_id_labels
 
     def __iter__(self):
         return self
@@ -83,11 +86,33 @@ class Batcher(object):
             max_length_batch = max(lengths)
 
             paddings = torch.full((max_length_batch, self.emb_dim),
-                                  fill_value=0,
+                                  fill_value=self.pad_id,
                                   dtype=torch.float32,
                                   )
-            print(paddings.size())
-            exit()
+            padded_labels = self.pad_id_labels * numpy.ones((len(batch_y), max_length_batch))
+            all_emb = list()
+            for idx in range(len(lengths)):
+                curr_x = batch_x[idx]
+                curr_len = len(curr_x)
+                padded_labels[idx][:curr_len] = batch_y[idx]
+
+                all_emb += [emb for emb in batch_x]
+
+                num_pads = max_length_batch - len(curr_x)
+
+                if num_pads:
+                    t = paddings[
+                        :num_pads * self.emb_dim
+                    ]
+                    all_emb.extend(t)
+
+            batch_x_final = torch.cat(all_emb).view(
+                self.batch_size, max_length_batch, self.emb_dim
+            )
+
+            batch_y_final = torch.LongTensor(padded_labels)
+
+            return batch_x_final, batch_y_final
 
 
 data_df = pandas.read_csv('../data/ner/ner.csv')
@@ -192,10 +217,14 @@ test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
 n_samples = len(train_embeddings)
 _, emb_dim = train_embeddings[0].size()
 
+pad_id = tokenizer.pad_token_id
+print(pad_id)
+exit()
 batcher = Batcher(numpy.asarray(train_embeddings, dtype=object),
                   numpy.asarray(train_labels, dtype=object), 32, emb_dim)
 for batch in batcher:
-    print(batch)
+    batch_x, batch_y = batch
+    print(batch_x, batch_y)
 exit()
 
 model = Classifier(embedding_dim=emb_dim, num_labels=len(labels2idx), dropout=0.01)
