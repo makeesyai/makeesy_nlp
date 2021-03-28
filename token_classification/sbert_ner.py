@@ -1,6 +1,5 @@
 import sys
 import warnings
-from typing import List
 
 import numpy
 import pandas
