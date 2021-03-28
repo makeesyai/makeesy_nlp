@@ -219,6 +219,7 @@ _, emb_dim = train_embeddings[0].size()
 pad_id = tokenizer.pad_token_id
 pad_id_labels = labels2idx['PAD']
 
+# dtype=object is important
 batcher = Batcher(numpy.asarray(train_embeddings, dtype=object),
                   numpy.asarray(train_labels, dtype=object), 32, emb_dim,
                   pad_id=pad_id, pad_id_labels=pad_id_labels)
