@@ -1,5 +1,6 @@
 import sys
 import warnings
+from typing import List
 
 import numpy
 import pandas
@@ -81,33 +82,31 @@ class Batcher(object):
         else:
             batch_x = self.data_x[self.ptr: self.ptr + self.batch_size]
             batch_y = self.data_y[self.ptr: self.ptr + self.batch_size]
+            self.ptr += self.batch_size
 
             lengths = [len(x) for x in batch_x]
             max_length_batch = max(lengths)
 
-            paddings = torch.full((max_length_batch, self.emb_dim),
+            paddings = torch.full((max_length_batch * self.emb_dim,),
                                   fill_value=self.pad_id,
                                   dtype=torch.float32,
                                   )
             padded_labels = self.pad_id_labels * numpy.ones((len(batch_y), max_length_batch))
             all_emb = list()
-            for idx in range(len(lengths)):
-                curr_x = batch_x[idx]
-                curr_len = len(curr_x)
+            for idx, embeddings in enumerate(batch_x):
+                curr_len = embeddings.shape[0]
                 padded_labels[idx][:curr_len] = batch_y[idx]
 
-                all_emb += [emb for emb in batch_x]
+                all_emb += [emb for emb in embeddings]
+                num_pads = max_length_batch - curr_len
 
-                num_pads = max_length_batch - len(curr_x)
-
-                if num_pads:
+                if num_pads > 0:
                     t = paddings[
                         :num_pads * self.emb_dim
                     ]
-                    all_emb.extend(t)
-
+                    all_emb.append(t)
             batch_x_final = torch.cat(all_emb).view(
-                self.batch_size, max_length_batch, self.emb_dim
+                [len(batch_x), max_length_batch, self.emb_dim]
             )
 
             batch_y_final = torch.LongTensor(padded_labels)
@@ -130,11 +129,11 @@ for text, label in zip(sentences, labels):
 
 
 labels_filtered = [l.split() for l in labels_filtered]
-train_sentences = sentences_filtered[0:10]
-train_labels = labels_filtered[0:10]
+train_sentences = sentences_filtered[0:4500]
+train_labels = labels_filtered[0:4500]
 
-test_sentences = sentences_filtered[10:15]
-test_labels = labels_filtered[10:15]
+test_sentences = sentences_filtered[4500:5000]
+test_labels = labels_filtered[4500:5000]
 
 labels2idx = get_label2id_vocab(train_labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
@@ -218,26 +217,23 @@ n_samples = len(train_embeddings)
 _, emb_dim = train_embeddings[0].size()
 
 pad_id = tokenizer.pad_token_id
-print(pad_id)
-exit()
+pad_id_labels = labels2idx['PAD']
+
 batcher = Batcher(numpy.asarray(train_embeddings, dtype=object),
-                  numpy.asarray(train_labels, dtype=object), 32, emb_dim)
-for batch in batcher:
-    batch_x, batch_y = batch
-    print(batch_x, batch_y)
-exit()
+                  numpy.asarray(train_labels, dtype=object), 32, emb_dim,
+                  pad_id=pad_id, pad_id_labels=pad_id_labels)
 
 model = Classifier(embedding_dim=emb_dim, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for e in range(10):
+for e in range(30):
     total_loss = 0
-    for emb, label in zip(train_embeddings, train_labels):
-        label = torch.LongTensor(label)
+    for batch in batcher:
+        batch_x, batch_y = batch
         optimizer.zero_grad()
-        model_output, _ = model(emb)
-        loss = loss_fn(model_output, label.view(-1))
+        model_output, _ = model(batch_x)
+        loss = loss_fn(model_output, batch_y.view(-1))
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
