@@ -82,7 +82,7 @@ class Batcher(object):
             lengths = [len(x) for x in batch_x]
             max_length_batch = max(lengths)
 
-            paddings = torch.full((self.num_samples, self.emb_dim),
+            paddings = torch.full((max_length_batch, self.emb_dim),
                                   fill_value=0,
                                   dtype=torch.float32,
                                   )
