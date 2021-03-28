@@ -1,6 +1,7 @@
 import sys
 import warnings
 
+import numpy
 import pandas
 import torch
 from numpy import VisibleDeprecationWarning
@@ -55,6 +56,40 @@ class Classifier(nn.Module):
         return tensor, probs
 
 
+class Batcher(object):
+    def __init__(self, data_x, data_y, batch_size, emb_dim, seed=0):
+        self.data_x = data_x
+        self.data_y = data_y
+        self.batch_size = batch_size
+        self.num_samples = data_x.shape[0]
+        self.emb_dim = emb_dim
+        self.indices = numpy.arange(self.num_samples)
+        self.ptr = 0
+        self.rnd = numpy.random.RandomState(seed)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.ptr >= self.num_samples:
+            self.ptr = 0
+            self.rnd.shuffle(self.indices)
+            raise StopIteration
+        else:
+            batch_x = self.data_x[self.ptr: self.ptr + self.batch_size]
+            batch_y = self.data_y[self.ptr: self.ptr + self.batch_size]
+
+            lengths = [len(x) for x in batch_x]
+            max_length_batch = max(lengths)
+
+            paddings = torch.full((self.num_samples, self.emb_dim),
+                                  fill_value=0,
+                                  dtype=torch.float32,
+                                  )
+            print(paddings.size())
+            exit()
+
+
 data_df = pandas.read_csv('../data/ner/ner.csv')
 print(data_df.head())
 sentences = data_df.text.tolist()
@@ -70,11 +105,11 @@ for text, label in zip(sentences, labels):
 
 
 labels_filtered = [l.split() for l in labels_filtered]
-train_sentences = sentences_filtered[0:4500]
-train_labels = labels_filtered[0:4500]
+train_sentences = sentences_filtered[0:10]
+train_labels = labels_filtered[0:10]
 
-test_sentences = sentences_filtered[4500:5000]
-test_labels = labels_filtered[4500:5000]
+test_sentences = sentences_filtered[10:15]
+test_labels = labels_filtered[10:15]
 
 labels2idx = get_label2id_vocab(train_labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
@@ -150,11 +185,18 @@ def subword2word_embeddings(subword_embeddings, text):
 
 train_embeddings = subword2word_embeddings(train_embeddings, sentences_filtered)
 test_embeddings = subword2word_embeddings(test_embeddings, test_sentences)
+
 # This will create a array of pointers to variable length tensors
 # np_array = numpy.asarray(sentence_embeddings, dtype=object)
 
 n_samples = len(train_embeddings)
 _, emb_dim = train_embeddings[0].size()
+
+batcher = Batcher(numpy.asarray(train_embeddings, dtype=object),
+                  numpy.asarray(train_labels, dtype=object), 32, emb_dim)
+for batch in batcher:
+    print(batch)
+exit()
 
 model = Classifier(embedding_dim=emb_dim, num_labels=len(labels2idx), dropout=0.01)
 loss_fn = nn.CrossEntropyLoss()
