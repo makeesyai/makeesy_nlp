@@ -113,7 +113,7 @@ class Batcher(object):
             return batch_x_final, batch_y_final
 
 
-data_df = pandas.read_csv('../data/ner/ner.csv')
+data_df = pandas.read_csv('../private/conll2003/eng.train.train.csv', sep='\t')
 print(data_df.head())
 sentences = data_df.text.tolist()
 labels = data_df.labels.tolist()
@@ -128,11 +128,12 @@ for text, label in zip(sentences, labels):
 
 
 labels_filtered = [l.split() for l in labels_filtered]
-train_sentences = sentences_filtered[0:4500]
-train_labels = labels_filtered[0:4500]
+train_sentences = sentences_filtered
+train_labels = labels_filtered
 
-test_sentences = sentences_filtered[4500:5000]
-test_labels = labels_filtered[4500:5000]
+data_df = pandas.read_csv('../private/conll2003/eng.testa.dev.csv', sep='\t')
+test_sentences = data_df.text.tolist()
+test_labels = data_df.labels.tolist()
 
 labels2idx = get_label2id_vocab(train_labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
@@ -148,6 +149,11 @@ test_labels = get_label_ids(test_labels, labels2idx)
 # Download link: https://www.kaggle.com/abhinavwalia95/entity-annotated-corpus
 
 # encoder = SentenceTransformer('quora-distilbert-multilingual')
+
+# Conll datasets
+# English- https://github.com/synalp/NER/tree/master/corpus/CoNLL-2003
+# Dutch, and Spanish- https://www.clips.uantwerpen.be/conll2002/ner/data/
+
 encoder = SentenceTransformer('distilbert-multilingual-nli-stsb-quora-ranking')
 
 train_embeddings = encoder.encode(train_sentences,
