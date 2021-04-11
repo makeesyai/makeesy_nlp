@@ -113,14 +113,14 @@ class Batcher(object):
             return batch_x_final, batch_y_final
 
 
-data_df = pandas.read_csv('../private/conll2003/eng.train.train.csv', sep='\t')
+data_df = pandas.read_csv('../data/wiki-ner/en/train.train.csv', sep='\t')
 print(data_df.head())
-sentences = data_df.text.tolist()
-labels = data_df.labels.tolist()
+sentences = data_df.text.tolist()[:5000]
+labels = data_df.labels.tolist()[:5000]
 sentences_filtered = []
 labels_filtered = []
 for text, label in zip(sentences, labels):
-    if len(text.split()) == len(label.split()):
+    if len(text.split())< 80 and len(text.split()) == len(label.split()):
         sentences_filtered.append(text)
         labels_filtered.append(label)
     else:
@@ -131,9 +131,11 @@ labels_filtered = [l.split() for l in labels_filtered]
 train_sentences = sentences_filtered
 train_labels = labels_filtered
 
-data_df = pandas.read_csv('../private/conll2003/eng.testa.dev.csv', sep='\t')
-test_sentences = data_df.text.tolist()
-test_labels = data_df.labels.tolist()
+data_df = pandas.read_csv('../data/wiki-ner/de/test.dev.csv', sep='\t')
+test_sentences = data_df.text.tolist()[:1000]
+test_labels = data_df.labels.tolist()[:1000]
+test_labels = [l.split() for l in test_labels]
+
 
 labels2idx = get_label2id_vocab(train_labels)
 idx2labels = {labels2idx[key]: key for key in labels2idx}
@@ -148,13 +150,8 @@ test_labels = get_label_ids(test_labels, labels2idx)
 # DATA
 # Download link: https://www.kaggle.com/abhinavwalia95/entity-annotated-corpus
 
-# encoder = SentenceTransformer('quora-distilbert-multilingual')
-
-# Conll datasets
-# English- https://github.com/synalp/NER/tree/master/corpus/CoNLL-2003
-# Dutch, and Spanish- https://www.clips.uantwerpen.be/conll2002/ner/data/
-
-encoder = SentenceTransformer('distilbert-multilingual-nli-stsb-quora-ranking')
+encoder = SentenceTransformer('quora-distilbert-multilingual')
+# encoder = SentenceTransformer('distilbert-multilingual-nli-stsb-quora-ranking')
 
 train_embeddings = encoder.encode(train_sentences,
                                   output_value='token_embeddings',
