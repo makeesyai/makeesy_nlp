@@ -2,8 +2,6 @@ import pandas as pd
 import argparse
 import os
 
-import tqdm
-
 
 def conll2003_preprocess(
         data_dir, train_name="eng.train", dev_name="eng.testa", test_name="eng.testb"):
